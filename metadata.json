@@ -1,0 +1,5 @@
+{
+  "name": "Md Mirazul Fakir Tools",
+  "description": "A professional collection of utility tools including Number to Words, Picture to PDF, Word to PDF, PDF to Word, Excel to PDF, PDF to Excel, PPT to PDF, PDF to PPT, Scan to PDF, Password Lock/Unlock PDF, Picture to Text (OCR), QR Code Scanner, QR Code Generator, and HEIC to JPG/PNG Converter.",
+  "requestFramePermissions": ["camera"]
+}

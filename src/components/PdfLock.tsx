@@ -1,11 +1,12 @@
 import React, { useState, useRef } from 'react';
-import { Lock, FileDown, Upload, X, ShieldAlert } from 'lucide-react';
+import { Lock, FileDown, Upload, X, ShieldAlert, Eye, EyeOff } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import Tooltip from './Tooltip';
 
 export default function PdfLock() {
   const [file, setFile] = useState<File | null>(null);
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -62,6 +63,8 @@ export default function PdfLock() {
       a.download = `locked-${file.name}`;
       a.click();
       URL.revokeObjectURL(url);
+      
+      alert('PDF successfully locked and downloaded!');
     } catch (error) {
       console.error('Error locking PDF:', error);
       alert('Failed to lock PDF. Please try again.');
@@ -74,21 +77,21 @@ export default function PdfLock() {
     <div className="flex flex-col gap-8">
       <div className="flex flex-col gap-2">
         <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-neutral-900 flex items-center gap-3">
-          <Lock className="w-8 h-8 text-indigo-600" />
+          <Lock className="w-8 h-8 text-red-600" />
           PDF Password Lock
         </h2>
         <p className="text-neutral-500 text-lg">
-          Enhance security by adding a password to your PDF document.
+          Secure your document with custom password protection.
         </p>
       </div>
 
       <div className="flex flex-col gap-6">
         {!file ? (
           <div
-            className={`relative w-full border-2 border-dashed rounded-3xl p-10 flex flex-col items-center justify-center gap-4 transition-all duration-200 ${
+            className={`relative w-full border-2 border-dashed rounded-[2.5rem] p-12 flex flex-col items-center justify-center gap-4 transition-all duration-300 ${
               isDragging
-                ? 'border-indigo-500 bg-indigo-50/50'
-                : 'border-neutral-300 bg-white hover:border-indigo-400 hover:bg-neutral-50'
+                ? 'border-red-500 bg-red-50/50 scale-[0.98]'
+                : 'border-neutral-200 bg-white hover:border-red-400 hover:bg-neutral-50'
             }`}
             onDragOver={onDragOver}
             onDragLeave={onDragLeave}
@@ -107,50 +110,51 @@ export default function PdfLock() {
               }}
             />
             
-            <div className="w-16 h-16 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mb-2">
-              <Upload className="w-8 h-8" />
+            <div className="w-20 h-20 bg-red-100 text-red-600 rounded-[2rem] flex items-center justify-center mb-2 shadow-lg shadow-red-100/50">
+              <Upload className="w-10 h-10" />
             </div>
             
             <div className="text-center">
-              <p className="text-lg font-medium text-neutral-800">
-                Drag & drop a PDF file here
+              <p className="text-xl font-bold text-neutral-800">
+                Release your file here
               </p>
-              <p className="text-neutral-500 mt-1">
-                or click to browse from your device
+              <p className="text-neutral-500 mt-2 font-medium">
+                Drag and drop your PDF file to encrypt it
               </p>
             </div>
             
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="mt-2 px-6 py-2.5 bg-white border border-neutral-200 text-neutral-700 font-medium rounded-xl hover:bg-neutral-50 hover:border-neutral-300 transition-all shadow-sm"
+              className="mt-4 px-8 py-3 bg-neutral-900 text-white font-bold rounded-2xl hover:bg-neutral-800 transition-all shadow-xl shadow-neutral-200 active:scale-95"
             >
-              Select PDF File
+              Choose PDF File
             </button>
           </div>
         ) : (
           <div className="flex flex-col gap-6 mt-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-neutral-800 flex items-center gap-2">
-                <ShieldAlert className="w-5 h-5 text-indigo-500" />
-                Selected File
+            <div className="flex items-center justify-between px-2">
+              <h3 className="text-sm font-black text-neutral-400 uppercase tracking-widest flex items-center gap-2">
+                <ShieldAlert className="w-4 h-4" />
+                Target Document
               </h3>
             </div>
             
-            <AnimatePresence>
+            <AnimatePresence mode="wait">
               <motion.div
+                key="file-selection"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="relative bg-white border border-neutral-200 rounded-2xl p-6 flex items-center justify-between shadow-sm"
+                className="relative bg-white border border-neutral-100 rounded-[2rem] p-6 flex items-center justify-between shadow-sm active:bg-neutral-50 transition-colors"
               >
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center">
-                    <Lock className="w-6 h-6" />
+                <div className="flex items-center gap-4 min-w-0">
+                  <div className="w-14 h-14 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center shrink-0">
+                    <Lock className="w-7 h-7" />
                   </div>
-                  <div>
-                    <p className="font-medium text-neutral-800">{file.name}</p>
-                    <p className="text-sm text-neutral-500">
-                      {(file.size / 1024 / 1024).toFixed(2)} MB
+                  <div className="min-w-0">
+                    <p className="font-bold text-neutral-800 truncate text-lg">{file.name}</p>
+                    <p className="text-xs font-bold text-neutral-400 uppercase tracking-wider">
+                      {(file.size / 1024 / 1024).toFixed(2)} MB • READY TO PROTECT
                     </p>
                   </div>
                 </div>
@@ -158,44 +162,55 @@ export default function PdfLock() {
                 <Tooltip content="Remove file">
                   <button
                     onClick={() => setFile(null)}
-                    className="p-2 text-neutral-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
+                    className="p-3 text-neutral-400 hover:text-red-500 hover:bg-red-50 rounded-2xl transition-all"
                   >
-                    <X className="w-5 h-5" />
+                    <X className="w-6 h-6" />
                   </button>
                 </Tooltip>
               </motion.div>
             </AnimatePresence>
 
-            <div className="flex flex-col gap-4 bg-white border border-neutral-200 rounded-2xl p-6 shadow-sm">
-              <label className="text-sm font-medium text-neutral-700">
-                Set PDF Password
-              </label>
-              <input 
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter strong password"
-                className="w-full px-4 py-3 rounded-xl border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
-              />
-              <p className="text-xs text-neutral-400">
-                This password will be required to open the PDF.
+            <div className="flex flex-col gap-4 bg-white border border-neutral-100 rounded-[2.5rem] p-8 shadow-sm">
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-black text-neutral-400 uppercase tracking-widest">
+                  Encryption Password
+                </label>
+              </div>
+              <div className="relative">
+                <input 
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Set a strong PDF password"
+                  className="w-full px-6 py-4 rounded-2xl bg-neutral-50 border-2 border-transparent focus:border-red-500 focus:bg-white focus:outline-none transition-all font-bold text-lg"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 p-2 text-neutral-400 hover:text-neutral-600 transition-colors"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
+              <p className="text-xs font-bold text-neutral-400 italic px-2">
+                Make sure to remember this password. You won't be able to open the file without it.
               </p>
             </div>
             
-            <div className="flex justify-end mt-6 pt-6 border-t border-neutral-200">
+            <div className="flex justify-center mt-8 px-4">
               <button
                 onClick={lockPdf}
                 disabled={isProcessing || !password}
-                className="flex items-center gap-2 px-8 py-4 bg-indigo-600 text-white font-semibold rounded-2xl hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md hover:shadow-lg active:scale-[0.98]"
+                className="w-full max-w-sm flex items-center justify-center gap-3 px-10 py-5 bg-red-600 text-white font-black text-lg rounded-[2rem] hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-xl shadow-red-200 active:scale-[0.98]"
               >
                 {isProcessing ? (
                   <>
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Locking PDF...
+                    <div className="w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin" />
+                    Encrypting...
                   </>
                 ) : (
                   <>
-                    <Lock className="w-5 h-5" />
+                    <Lock className="w-6 h-6" />
                     Lock & Download
                   </>
                 )}

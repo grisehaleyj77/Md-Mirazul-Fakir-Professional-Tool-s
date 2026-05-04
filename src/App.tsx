@@ -1,4 +1,4 @@
-import { ArrowRightLeft, Image as ImageIcon, FileText, FileType, FileDown, Hash, FileSpreadsheet, Presentation, Camera, Lock, LockOpen, Type, QrCode, LayoutGrid, Languages, Sparkles, Shield, Cpu, Zap, Github, Twitter, Linkedin, Globe, Mail, Phone, MapPin, ChevronRight, Search, Settings } from 'lucide-react';
+import { ArrowRightLeft, Image as ImageIcon, FileText, FileType, FileDown, Hash, FileSpreadsheet, Presentation, Camera, Lock, LockOpen, Type, QrCode, LayoutGrid, Languages, Sparkles, Shield, Cpu, Zap, Github, Twitter, Linkedin, Globe, Mail, Phone, MapPin, ChevronRight, Search, Settings, FileStack, Calculator as CalculatorIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useState, useMemo } from 'react';
 import NumberToWords from './components/NumberToWords';
@@ -12,13 +12,15 @@ import PdfToPowerPoint from './components/PdfToPowerPoint';
 import ScanToPdf from './components/ScanToPdf';
 import PdfLock from './components/PdfLock';
 import PdfUnlock from './components/PdfUnlock';
+import PdfMerge from './components/PdfMerge';
 import PictureToText from './components/PictureToText';
 import QrScanner from './components/QrScanner';
 import QrGenerator from './components/QrGenerator';
 import HeicConverter from './components/HeicConverter';
 import BanglaTranslator from './components/BanglaTranslator';
+import Calculator from './components/Calculator';
 
-type Tab = 'home' | 'number-to-words' | 'picture-to-pdf' | 'word-to-pdf' | 'pdf-to-word' | 'excel-to-pdf' | 'pdf-to-excel' | 'powerpoint-to-pdf' | 'pdf-to-powerpoint' | 'scan-to-pdf' | 'pdf-lock' | 'pdf-unlock' | 'picture-to-text' | 'qr-scanner' | 'qr-generator' | 'heic-converter' | 'translator';
+type Tab = 'home' | 'number-to-words' | 'picture-to-pdf' | 'word-to-pdf' | 'pdf-to-word' | 'excel-to-pdf' | 'pdf-to-excel' | 'powerpoint-to-pdf' | 'pdf-to-powerpoint' | 'scan-to-pdf' | 'pdf-merge' | 'pdf-lock' | 'pdf-unlock' | 'picture-to-text' | 'qr-scanner' | 'qr-generator' | 'heic-converter' | 'translator' | 'calculator';
 
 interface Tool {
   id: Tab;
@@ -38,6 +40,7 @@ const TOOLS: Tool[] = [
   { id: 'powerpoint-to-pdf', name: 'PPT to PDF', description: 'Convert presentations to PDF slides.', icon: Presentation, category: 'PDF', color: 'bg-orange-600' },
   { id: 'pdf-to-powerpoint', name: 'PDF to PPT', description: 'Convert PDF files to editable PPT slides.', icon: Presentation, category: 'PDF', color: 'bg-amber-600' },
   { id: 'scan-to-pdf', name: 'Scan to PDF', description: 'Capture documents using your camera.', icon: Camera, category: 'PDF', color: 'bg-indigo-600' },
+  { id: 'pdf-merge', name: 'Merge PDF', description: 'Combine multiple PDF files into one.', icon: FileStack, category: 'PDF', color: 'bg-sky-600' },
   { id: 'pdf-lock', name: 'Lock PDF', description: 'Secure your PDF files with encryption.', icon: Lock, category: 'Security', color: 'bg-red-600' },
   { id: 'pdf-unlock', name: 'Unlock PDF', description: 'Remove passwords from protected PDFs.', icon: LockOpen, category: 'Security', color: 'bg-rose-600' },
   { id: 'picture-to-text', name: 'Pic to Text', description: 'Extract text from images using OCR.', icon: Type, category: 'Image', color: 'bg-violet-600' },
@@ -46,6 +49,7 @@ const TOOLS: Tool[] = [
   { id: 'qr-generator', name: 'QR Generator', description: 'Create custom QR codes effortlessly.', icon: LayoutGrid, category: 'Utility', color: 'bg-indigo-700' },
   { id: 'translator', name: 'Translator', description: 'AI-powered English to Bangla translation.', icon: Languages, category: 'Utility', color: 'bg-brand-500' },
   { id: 'number-to-words', name: 'Num to Words', description: 'Convert numbers into spoken text.', icon: Hash, category: 'Utility', color: 'bg-neutral-600' },
+  { id: 'calculator', name: 'Calculator', description: 'Professional arithmetic calculator.', icon: CalculatorIcon, category: 'Utility', color: 'bg-neutral-900' },
 ];
 
 export default function App() {
@@ -74,6 +78,7 @@ export default function App() {
       case 'powerpoint-to-pdf': return <PowerPointToPdf />;
       case 'pdf-to-powerpoint': return <PdfToPowerPoint />;
       case 'scan-to-pdf': return <ScanToPdf />;
+      case 'pdf-merge': return <PdfMerge />;
       case 'pdf-lock': return <PdfLock />;
       case 'pdf-unlock': return <PdfUnlock />;
       case 'picture-to-text': return <PictureToText />;
@@ -81,6 +86,7 @@ export default function App() {
       case 'qr-generator': return <QrGenerator />;
       case 'heic-converter': return <HeicConverter />;
       case 'translator': return <BanglaTranslator />;
+      case 'calculator': return <Calculator />;
       default: return null;
     }
   };
@@ -194,6 +200,13 @@ export default function App() {
                   </div>
                 );
               })}
+
+              {/* Developer Credit */}
+              <div className="pt-12 pb-6 text-center">
+                <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest italic">
+                  Developer Md Mirazul Fakir
+                </p>
+              </div>
             </motion.div>
           ) : (
             <motion.div
@@ -227,6 +240,12 @@ export default function App() {
 
                  <div className="bg-white border-neutral-100 lg:border lg:rounded-[3rem] p-4 lg:p-12 lg:shadow-2xl lg:shadow-neutral-200/20 rounded-2xl shadow-sm">
                     {renderTool()}
+                 </div>
+
+                 <div className="mt-12 text-center">
+                    <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest italic">
+                      Developer Md Mirazul Fakir
+                    </p>
                  </div>
               </div>
             </motion.div>

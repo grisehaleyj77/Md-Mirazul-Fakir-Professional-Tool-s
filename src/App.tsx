@@ -19,8 +19,9 @@ import QrGenerator from './components/QrGenerator';
 import HeicConverter from './components/HeicConverter';
 import BanglaTranslator from './components/BanglaTranslator';
 import Calculator from './components/Calculator';
+import TxtToPdf from './components/TxtToPdf';
 
-type Tab = 'home' | 'number-to-words' | 'picture-to-pdf' | 'word-to-pdf' | 'pdf-to-word' | 'excel-to-pdf' | 'pdf-to-excel' | 'powerpoint-to-pdf' | 'pdf-to-powerpoint' | 'scan-to-pdf' | 'pdf-merge' | 'pdf-lock' | 'pdf-unlock' | 'picture-to-text' | 'qr-scanner' | 'qr-generator' | 'heic-converter' | 'translator' | 'calculator';
+type Tab = 'home' | 'number-to-words' | 'picture-to-pdf' | 'word-to-pdf' | 'pdf-to-word' | 'excel-to-pdf' | 'pdf-to-excel' | 'powerpoint-to-pdf' | 'pdf-to-powerpoint' | 'scan-to-pdf' | 'pdf-merge' | 'pdf-lock' | 'pdf-unlock' | 'picture-to-text' | 'qr-scanner' | 'qr-generator' | 'heic-converter' | 'translator' | 'calculator' | 'txt-to-pdf';
 
 interface Tool {
   id: Tab;
@@ -50,6 +51,7 @@ const TOOLS: Tool[] = [
   { id: 'translator', name: 'Translator', description: 'AI-powered English to Bangla translation.', icon: Languages, category: 'Utility', color: 'bg-brand-500' },
   { id: 'number-to-words', name: 'Num to Words', description: 'Convert numbers into spoken text.', icon: Hash, category: 'Utility', color: 'bg-neutral-600' },
   { id: 'calculator', name: 'Calculator', description: 'Professional arithmetic calculator.', icon: CalculatorIcon, category: 'Utility', color: 'bg-neutral-900' },
+  { id: 'txt-to-pdf', name: 'TXT to PDF', description: 'Convert text files into professional PDFs.', icon: FileText, category: 'PDF', color: 'bg-blue-400' },
 ];
 
 export default function App() {
@@ -87,6 +89,7 @@ export default function App() {
       case 'heic-converter': return <HeicConverter />;
       case 'translator': return <BanglaTranslator />;
       case 'calculator': return <Calculator />;
+      case 'txt-to-pdf': return <TxtToPdf />;
       default: return null;
     }
   };

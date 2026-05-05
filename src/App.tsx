@@ -1,4 +1,4 @@
-import { ArrowRightLeft, Image as ImageIcon, FileText, FileType, FileDown, Hash, FileSpreadsheet, Presentation, Camera, Lock, LockOpen, Type, QrCode, LayoutGrid, Languages, Sparkles, Shield, Cpu, Zap, Github, Twitter, Linkedin, Globe, Mail, Phone, MapPin, ChevronRight, Search, Settings, FileStack, Calculator as CalculatorIcon } from 'lucide-react';
+import { ArrowRightLeft, Image as ImageIcon, FileText, FileType, FileDown, Hash, FileSpreadsheet, Presentation, Camera, Lock, LockOpen, Type, QrCode, LayoutGrid, Languages, Sparkles, Shield, Cpu, Zap, Github, Twitter, Linkedin, Globe, Mail, Phone, MapPin, ChevronRight, Search, Settings, FileStack, Calculator as CalculatorIcon, Wand2, Volume2, PenTool, Eraser, Smile, Layers, FileEdit, Mic } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useState, useMemo } from 'react';
 import NumberToWords from './components/NumberToWords';
@@ -19,8 +19,17 @@ import QrGenerator from './components/QrGenerator';
 import HeicConverter from './components/HeicConverter';
 import BanglaTranslator from './components/BanglaTranslator';
 import Calculator from './components/Calculator';
+import BackgroundRemover from './components/BackgroundRemover';
+import TextToSpeech from './components/TextToSpeech';
+import ImageWatermarkBeautifier from './components/ImageWatermarkBeautifier';
+import AiArticleGenerator from './components/AiArticleGenerator';
+import AiWatermarkRemover from './components/AiWatermarkRemover';
+import AiEmojiRemover from './components/AiEmojiRemover';
+import WordEditor from './components/WordEditor';
+import PdfEditor from './components/PdfEditor';
+import SpeechToText from './components/SpeechToText';
 
-type Tab = 'home' | 'number-to-words' | 'picture-to-pdf' | 'word-to-pdf' | 'pdf-to-word' | 'excel-to-pdf' | 'pdf-to-excel' | 'powerpoint-to-pdf' | 'pdf-to-powerpoint' | 'scan-to-pdf' | 'pdf-merge' | 'pdf-lock' | 'pdf-unlock' | 'picture-to-text' | 'qr-scanner' | 'qr-generator' | 'heic-converter' | 'translator' | 'calculator';
+type Tab = 'home' | 'number-to-words' | 'picture-to-pdf' | 'word-to-pdf' | 'pdf-to-word' | 'excel-to-pdf' | 'pdf-to-excel' | 'powerpoint-to-pdf' | 'pdf-to-powerpoint' | 'scan-to-pdf' | 'pdf-merge' | 'pdf-lock' | 'pdf-unlock' | 'picture-to-text' | 'qr-scanner' | 'qr-generator' | 'heic-converter' | 'translator' | 'calculator' | 'bg-remover' | 'text-to-speech' | 'image-beautifier' | 'article-generator' | 'watermark-remover' | 'emoji-remover' | 'word-editor' | 'pdf-editor' | 'speech-to-text';
 
 interface Tool {
   id: Tab;
@@ -41,6 +50,7 @@ const TOOLS: Tool[] = [
   { id: 'pdf-to-powerpoint', name: 'PDF to PPT', description: 'Convert PDF files to editable PPT slides.', icon: Presentation, category: 'PDF', color: 'bg-amber-600' },
   { id: 'scan-to-pdf', name: 'Scan to PDF', description: 'Capture documents using your camera.', icon: Camera, category: 'PDF', color: 'bg-indigo-600' },
   { id: 'pdf-merge', name: 'Merge PDF', description: 'Combine multiple PDF files into one.', icon: FileStack, category: 'PDF', color: 'bg-sky-600' },
+  { id: 'pdf-editor', name: 'PDF Editor', description: 'Rotate, reorder, or delete PDF pages.', icon: Layers, category: 'PDF', color: 'bg-indigo-700' },
   { id: 'pdf-lock', name: 'Lock PDF', description: 'Secure your PDF files with encryption.', icon: Lock, category: 'Security', color: 'bg-red-600' },
   { id: 'pdf-unlock', name: 'Unlock PDF', description: 'Remove passwords from protected PDFs.', icon: LockOpen, category: 'Security', color: 'bg-rose-600' },
   { id: 'picture-to-text', name: 'Pic to Text', description: 'Extract text from images using OCR.', icon: Type, category: 'Image', color: 'bg-violet-600' },
@@ -50,6 +60,14 @@ const TOOLS: Tool[] = [
   { id: 'translator', name: 'Translator', description: 'AI-powered English to Bangla translation.', icon: Languages, category: 'Utility', color: 'bg-brand-500' },
   { id: 'number-to-words', name: 'Num to Words', description: 'Convert numbers into spoken text.', icon: Hash, category: 'Utility', color: 'bg-neutral-600' },
   { id: 'calculator', name: 'Calculator', description: 'Professional arithmetic calculator.', icon: CalculatorIcon, category: 'Utility', color: 'bg-neutral-900' },
+  { id: 'bg-remover', name: 'BG Remover', description: 'Remove image background using AI.', icon: Wand2, category: 'Image', color: 'bg-fuchsia-600' },
+  { id: 'image-beautifier', name: 'Beautifier', description: 'Enhance photos & add watermarks.', icon: Sparkles, category: 'Image', color: 'bg-amber-500' },
+  { id: 'watermark-remover', name: 'WM Remover', description: 'AI-powered watermark removal tool.', icon: Eraser, category: 'Image', color: 'bg-rose-500' },
+  { id: 'emoji-remover', name: 'Emoji Remover', description: 'Remove emojis from text and photos.', icon: Smile, category: 'Utility', color: 'bg-pink-500' },
+  { id: 'article-generator', name: 'AI Writer', description: 'Generate high-quality articles with AI.', icon: PenTool, category: 'Utility', color: 'bg-brand-500' },
+  { id: 'word-editor', name: 'Word Editor', description: 'Edit .docx documents professionally.', icon: FileEdit, category: 'Utility', color: 'bg-brand-600' },
+  { id: 'speech-to-text', name: 'Voice to Text', description: 'Real-time English, Bangla & Hindi STT.', icon: Mic, category: 'Utility', color: 'bg-indigo-600' },
+  { id: 'text-to-speech', name: 'TTS AI', description: 'Convert text to natural speech voices.', icon: Volume2, category: 'Utility', color: 'bg-indigo-600' },
 ];
 
 export default function App() {
@@ -87,6 +105,15 @@ export default function App() {
       case 'heic-converter': return <HeicConverter />;
       case 'translator': return <BanglaTranslator />;
       case 'calculator': return <Calculator />;
+      case 'bg-remover': return <BackgroundRemover />;
+      case 'image-beautifier': return <ImageWatermarkBeautifier />;
+      case 'watermark-remover': return <AiWatermarkRemover />;
+      case 'article-generator': return <AiArticleGenerator />;
+      case 'text-to-speech': return <TextToSpeech />;
+      case 'emoji-remover': return <AiEmojiRemover />;
+      case 'word-editor': return <WordEditor />;
+      case 'pdf-editor': return <PdfEditor />;
+      case 'speech-to-text': return <SpeechToText />;
       default: return null;
     }
   };

@@ -1,5 +1,5 @@
 {
   "name": "Md Mirazul Fakir Tools",
-  "description": "A professional collection of utility tools including Text to Speech AI, Calculator, Number to Words, Picture to PDF, Word to PDF, PDF to Word, Excel to PDF, PDF to Excel, PPT to PDF, PDF to PPT, Scan to PDF, Merge PDF, Password Lock/Unlock PDF, Picture to Text (OCR), QR Code Scanner, QR Code Generator, HEIC to JPG/PNG Converter, and English to Bangla Translator.",
+  "description": "A professional collection of utility tools including Calculator, Number to Words, Picture to PDF, Word to PDF, PDF to Word, Excel to PDF, PDF to Excel, PPT to PDF, PDF to PPT, Scan to PDF, Merge PDF, Password Lock/Unlock PDF, Picture to Text (OCR), QR Code Scanner, QR Code Generator, HEIC to JPG/PNG Converter, and English to Bangla Translator.",
   "requestFramePermissions": ["camera", "microphone"]
 }

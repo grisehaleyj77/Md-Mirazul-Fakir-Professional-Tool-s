@@ -22,10 +22,9 @@ import Calculator from './components/Calculator';
 import TextToSpeech from './components/TextToSpeech';
 import AiArticleGenerator from './components/AiArticleGenerator';
 import WordEditor from './components/WordEditor';
-import PdfEditor from './components/PdfEditor';
 import SpeechToText from './components/SpeechToText';
 
-type Tab = 'home' | 'number-to-words' | 'picture-to-pdf' | 'word-to-pdf' | 'pdf-to-word' | 'excel-to-pdf' | 'pdf-to-excel' | 'powerpoint-to-pdf' | 'pdf-to-powerpoint' | 'scan-to-pdf' | 'pdf-merge' | 'pdf-lock' | 'pdf-unlock' | 'picture-to-text' | 'qr-scanner' | 'qr-generator' | 'heic-converter' | 'translator' | 'calculator' | 'text-to-speech' | 'article-generator' | 'word-editor' | 'pdf-editor' | 'speech-to-text';
+type Tab = 'home' | 'number-to-words' | 'picture-to-pdf' | 'word-to-pdf' | 'pdf-to-word' | 'excel-to-pdf' | 'pdf-to-excel' | 'powerpoint-to-pdf' | 'pdf-to-powerpoint' | 'scan-to-pdf' | 'pdf-merge' | 'pdf-lock' | 'pdf-unlock' | 'picture-to-text' | 'qr-scanner' | 'qr-generator' | 'heic-converter' | 'translator' | 'calculator' | 'text-to-speech' | 'article-generator' | 'word-editor' | 'speech-to-text';
 
 interface Tool {
   id: Tab;
@@ -46,7 +45,6 @@ const TOOLS: Tool[] = [
   { id: 'pdf-to-powerpoint', name: 'PDF to PPT', description: 'Convert PDF files to editable PPT slides.', icon: Presentation, category: 'PDF', color: 'bg-amber-600' },
   { id: 'scan-to-pdf', name: 'Scan to PDF', description: 'Capture documents using your camera.', icon: Camera, category: 'PDF', color: 'bg-indigo-600' },
   { id: 'pdf-merge', name: 'Merge PDF', description: 'Combine multiple PDF files into one.', icon: FileStack, category: 'PDF', color: 'bg-sky-600' },
-  { id: 'pdf-editor', name: 'PDF Editor', description: 'Rotate, reorder, or delete PDF pages.', icon: Layers, category: 'PDF', color: 'bg-indigo-700' },
   { id: 'pdf-lock', name: 'Lock PDF', description: 'Secure your PDF files with encryption.', icon: Lock, category: 'Security', color: 'bg-red-600' },
   { id: 'pdf-unlock', name: 'Unlock PDF', description: 'Remove passwords from protected PDFs.', icon: LockOpen, category: 'Security', color: 'bg-rose-600' },
   { id: 'picture-to-text', name: 'Pic to Text', description: 'Extract text from images using OCR.', icon: Type, category: 'Image', color: 'bg-violet-600' },
@@ -100,7 +98,6 @@ export default function App() {
       case 'article-generator': return <AiArticleGenerator />;
       case 'text-to-speech': return <TextToSpeech />;
       case 'word-editor': return <WordEditor />;
-      case 'pdf-editor': return <PdfEditor />;
       case 'speech-to-text': return <SpeechToText />;
       default: return null;
     }

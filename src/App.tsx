@@ -20,11 +20,9 @@ import HeicConverter from './components/HeicConverter';
 import BanglaTranslator from './components/BanglaTranslator';
 import Calculator from './components/Calculator';
 import TextToSpeech from './components/TextToSpeech';
-import AiArticleGenerator from './components/AiArticleGenerator';
 import WordEditor from './components/WordEditor';
-import SpeechToText from './components/SpeechToText';
 
-type Tab = 'home' | 'number-to-words' | 'picture-to-pdf' | 'word-to-pdf' | 'pdf-to-word' | 'excel-to-pdf' | 'pdf-to-excel' | 'powerpoint-to-pdf' | 'pdf-to-powerpoint' | 'scan-to-pdf' | 'pdf-merge' | 'pdf-lock' | 'pdf-unlock' | 'picture-to-text' | 'qr-scanner' | 'qr-generator' | 'heic-converter' | 'translator' | 'calculator' | 'text-to-speech' | 'article-generator' | 'word-editor' | 'speech-to-text';
+type Tab = 'home' | 'number-to-words' | 'picture-to-pdf' | 'word-to-pdf' | 'pdf-to-word' | 'excel-to-pdf' | 'pdf-to-excel' | 'powerpoint-to-pdf' | 'pdf-to-powerpoint' | 'scan-to-pdf' | 'pdf-merge' | 'pdf-lock' | 'pdf-unlock' | 'picture-to-text' | 'qr-scanner' | 'qr-generator' | 'heic-converter' | 'translator' | 'calculator' | 'text-to-speech' | 'word-editor';
 
 interface Tool {
   id: Tab;
@@ -54,9 +52,7 @@ const TOOLS: Tool[] = [
   { id: 'translator', name: 'Translator', description: 'AI-powered English to Bangla translation.', icon: Languages, category: 'Utility', color: 'bg-brand-500' },
   { id: 'number-to-words', name: 'Num to Words', description: 'Convert numbers into spoken text.', icon: Hash, category: 'Utility', color: 'bg-neutral-600' },
   { id: 'calculator', name: 'Calculator', description: 'Professional arithmetic calculator.', icon: CalculatorIcon, category: 'Utility', color: 'bg-neutral-900' },
-  { id: 'article-generator', name: 'AI Writer', description: 'Generate high-quality articles with AI.', icon: PenTool, category: 'Utility', color: 'bg-brand-500' },
   { id: 'word-editor', name: 'Word Editor', description: 'Edit .docx documents professionally.', icon: FileEdit, category: 'Utility', color: 'bg-brand-600' },
-  { id: 'speech-to-text', name: 'Voice to Text', description: 'Real-time English, Bangla & Hindi STT.', icon: Mic, category: 'Utility', color: 'bg-indigo-600' },
   { id: 'text-to-speech', name: 'TTS AI', description: 'Convert text to natural speech voices.', icon: Volume2, category: 'Utility', color: 'bg-indigo-600' },
 ];
 
@@ -95,10 +91,8 @@ export default function App() {
       case 'heic-converter': return <HeicConverter />;
       case 'translator': return <BanglaTranslator />;
       case 'calculator': return <Calculator />;
-      case 'article-generator': return <AiArticleGenerator />;
       case 'text-to-speech': return <TextToSpeech />;
       case 'word-editor': return <WordEditor />;
-      case 'speech-to-text': return <SpeechToText />;
       default: return null;
     }
   };

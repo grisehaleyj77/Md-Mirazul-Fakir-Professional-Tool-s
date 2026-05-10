@@ -1,32 +1,39 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-@theme {
-  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
-  
-  --color-brand-50: #f0f4ff;
-  --color-brand-100: #e0e9ff;
-  --color-brand-200: #c1d3ff;
-  --color-brand-300: #a2bdff;
-  --color-brand-400: #6391ff;
-  --color-brand-500: #2465ff;
-  --color-brand-600: #205be6;
-  --color-brand-700: #1a4ca1;
-  --color-brand-800: #143b7d;
-  --color-brand-900: #0f2c5e;
+:root {
+  --app-blue: #2563eb;
+  --app-bg: #fdfdfd;
+  --card-bg: #ffffff;
+  --text-main: #0f172a;
+  --text-muted: #94a3b8;
+  --nav-bg: rgba(255, 255, 255, 0.9);
 }
 
-@layer base {
-  body {
-    @apply antialiased text-neutral-900 bg-neutral-50;
+.dark {
+  --app-blue: #3b82f6;
+  --app-bg: #020617;
+  --card-bg: #0f172a;
+  --text-main: #f8fafc;
+  --text-muted: #64748b;
+  --nav-bg: rgba(15, 23, 42, 0.9);
+}
+
+body {
+  background-color: var(--app-bg);
+  color: var(--text-main);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@layer components {
+  .tool-card {
+    @apply bg-[var(--card-bg)] rounded-[48px] p-8 flex flex-col items-center justify-center gap-4 transition-all active:scale-95 shadow-sm border border-slate-50 dark:border-white/5;
   }
-}
-
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+  
+  .icon-circle {
+    @apply w-20 h-20 rounded-full flex items-center justify-center text-white shadow-lg transition-transform group-hover:scale-105;
+  }
 }

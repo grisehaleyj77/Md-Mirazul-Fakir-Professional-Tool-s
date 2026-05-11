@@ -160,7 +160,7 @@ export default function App() {
   };
 
   const [userStatus, setUserStatus] = useState({
-    name: 'Mirazul Fakir',
+    name: 'User',
     plan: 'Starter',
     requestsUsed: 12,
     isPro: false

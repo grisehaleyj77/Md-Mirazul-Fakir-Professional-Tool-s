@@ -10,6 +10,7 @@ import {
   QrCode, 
   Search, 
   Zap, 
+  Tag,
   FileSpreadsheet, 
   FileType, 
   ShieldAlert,
@@ -26,7 +27,10 @@ import {
   Mic,
   Volume2,
   User,
-  Camera
+  Camera,
+  BarChart2,
+  Radio,
+  Flame
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -61,6 +65,9 @@ import { Profile } from './components/Profile';
 import { ScreenshotEditor } from './components/tools/ScreenshotEditor';
 import { HashtagGenerator } from './components/tools/HashtagGenerator';
 import { YouTubeSEOTool } from './components/tools/YouTubeSEOTool';
+import { YouTubeResearchTool } from './components/tools/YouTubeResearchTool';
+import { YouTubeTagTool } from './components/tools/YouTubeTagTool';
+import { SocialMediaTrendingTool } from './components/tools/SocialMediaTrendingTool';
 
 const TOOL_CONFIG = [
   // Document Category
@@ -78,6 +85,9 @@ const TOOL_CONFIG = [
   { id: 'scan-to-pdf', name: 'Scan to PDF', description: 'Mobile PDF scanner', category: 'DOC', icon: FileUp, color: 'bg-[#6366f1]', component: ScanToPDF },
 
   // AI & Media Category
+  { id: 'sm-trends', name: 'Social Trends', description: 'Live viral topics', category: 'AI', icon: Flame, color: 'bg-[#ff5722]', component: SocialMediaTrendingTool },
+  { id: 'yt-tags', name: 'YT Tag Live', description: 'Viral tag generation', category: 'AI', icon: Tag, color: 'bg-[#ff0000]', component: YouTubeTagTool },
+  { id: 'yt-research', name: 'YT Research', description: 'Live Market Intel', category: 'AI', icon: BarChart2, color: 'bg-[#ff0000]', component: YouTubeResearchTool },
   { id: 'yt-seo', name: 'YT SEO Pro', description: 'Rank your videos #1', category: 'AI', icon: Youtube, color: 'bg-[#ff0000]', component: YouTubeSEOTool },
   { id: 'hashtag-generator', name: 'AI Hashtag', description: 'Social Media tags', category: 'AI', icon: Hash, color: 'bg-[#ffca28]', component: HashtagGenerator },
   { id: 'screenshot-editor', name: 'SS Editor', description: 'Annotate & Redact', category: 'AI', icon: Camera, color: 'bg-[#06b6d4]', component: ScreenshotEditor },

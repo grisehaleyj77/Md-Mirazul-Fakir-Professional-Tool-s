@@ -69,7 +69,7 @@ export const Profile = ({ userStatus, onUpdateName }: any) => {
                  <input 
                   type="email" 
                   disabled
-                  value="mirazul@enterprise.com" 
+                  value="user@example.com" 
                   className="w-full h-14 bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-2xl px-4 font-bold opacity-50 cursor-not-allowed"
                  />
                </div>

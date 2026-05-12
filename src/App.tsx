@@ -15,6 +15,8 @@ import {
   FileType, 
   ShieldAlert,
   Youtube,
+  Video,
+  Music,
   LayoutGrid,
   MapPin,
   ChevronLeft,
@@ -30,7 +32,9 @@ import {
   Camera,
   BarChart2,
   Radio,
-  Flame
+  Flame,
+  Gamepad2,
+  Calendar as CalendarIcon
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -60,6 +64,10 @@ import { TTSAI } from './components/tools/TTSAI';
 import { Translator } from './components/tools/Translator';
 import { PDFToWord } from './components/tools/PDFToWord';
 import { WordToPDF } from './components/tools/WordToPDF';
+import { VideoEditor } from './components/tools/VideoEditor';
+import { VideoToAudio } from './components/tools/VideoToAudio';
+import { AudioEditor } from './components/tools/AudioEditor';
+import { BanglaCalendar } from './components/tools/BanglaCalendar';
 import { Subscription } from './components/Subscription';
 import { Profile } from './components/Profile';
 import { ScreenshotEditor } from './components/tools/ScreenshotEditor';
@@ -85,6 +93,9 @@ const TOOL_CONFIG = [
   { id: 'scan-to-pdf', name: 'Scan to PDF', description: 'Mobile PDF scanner', category: 'DOC', icon: FileUp, color: 'bg-[#6366f1]', component: ScanToPDF },
 
   // AI & Media Category
+  { id: 'video-editor', name: 'Video Studio Pro', description: 'Elite Trim & Merge', category: 'AI', icon: Video, color: 'bg-[#6366f1]', component: VideoEditor },
+  { id: 'video-to-audio', name: 'Video to Audio', description: 'Extract Master Audio', category: 'AI', icon: Music, color: 'bg-[#a855f7]', component: VideoToAudio },
+  { id: 'audio-editor', name: 'Audio Studio Pro', description: 'Trim & Merge Tracks', category: 'AI', icon: Mic, color: 'bg-[#f59e0b]', component: AudioEditor },
   { id: 'sm-trends', name: 'Social Trends', description: 'Live viral topics', category: 'AI', icon: Flame, color: 'bg-[#ff5722]', component: SocialMediaTrendingTool },
   { id: 'yt-tags', name: 'YT Tag Live', description: 'Viral tag generation', category: 'AI', icon: Tag, color: 'bg-[#ff0000]', component: YouTubeTagTool },
   { id: 'yt-research', name: 'YT Research', description: 'Live Market Intel', category: 'AI', icon: BarChart2, color: 'bg-[#ff0000]', component: YouTubeResearchTool },
@@ -106,6 +117,7 @@ const TOOL_CONFIG = [
   { id: 'heic-converter', name: 'HEIC 2 JPG', description: 'iPhone image fix', category: 'UTIL', icon: ImageIcon, color: 'bg-[#14b8a6]', component: HEICConverter },
   { id: 'stt-ai', name: 'Voice 2 Text', description: 'Real-time AI typing', category: 'UTIL', icon: Mic, color: 'bg-[#8b5cf6]', component: STTAI },
   { id: 'tts-ai', name: 'Text 2 Voice', description: 'AI natural speech', category: 'UTIL', icon: Volume2, color: 'bg-[#ec4899]', component: TTSAI },
+  { id: 'bangla-calendar', name: 'Live Calendar', description: 'English & Bangla dual kit', category: 'UTIL', icon: CalendarIcon, color: 'bg-[#4f46e5]', component: BanglaCalendar },
 
   // Language
   { id: 'translator', name: 'Translate', description: 'AI Language expert', category: 'LANG', icon: Languages, color: 'bg-[#10b981]', component: Translator },
@@ -151,7 +163,7 @@ export default function App() {
           
           <footer className="mt-20 pb-10 text-center">
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">
-              Developed by <span className="text-blue-600">Md Mirazul Fakir</span>
+              Developer by <span className="text-blue-600">Md Mirazul Fakir</span>
             </p>
           </footer>
         </div>
@@ -218,7 +230,7 @@ export default function App() {
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-xs font-black text-[var(--text-muted)] uppercase tracking-[0.25em]">DOCUMENT SOLUTIONS</h3>
             <div className="w-7 h-7 bg-blue-600 rounded-lg flex items-center justify-center text-[11px] font-black text-white shadow-xl shadow-blue-600/20">
-              12
+              {TOOL_CONFIG.filter(t => t.category === 'DOC').length}
             </div>
           </div>
 
@@ -245,7 +257,7 @@ export default function App() {
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-xs font-black text-[var(--text-muted)] uppercase tracking-[0.25em]">AI & MEDIA</h3>
             <div className="w-7 h-7 bg-indigo-600 rounded-lg flex items-center justify-center text-[11px] font-black text-white shadow-xl shadow-indigo-600/20">
-              8
+              {TOOL_CONFIG.filter(t => t.category === 'AI').length}
             </div>
           </div>
 
@@ -272,7 +284,7 @@ export default function App() {
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-xs font-black text-[var(--text-muted)] uppercase tracking-[0.25em]">UTILITIES</h3>
             <div className="w-7 h-7 bg-cyan-600 rounded-lg flex items-center justify-center text-[11px] font-black text-white shadow-xl shadow-cyan-600/20">
-              5
+              {TOOL_CONFIG.filter(t => t.category === 'UTIL').length}
             </div>
           </div>
 
@@ -299,7 +311,7 @@ export default function App() {
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-xs font-black text-[var(--text-muted)] uppercase tracking-[0.25em]">LANGUAGE & LEARN</h3>
             <div className="w-7 h-7 bg-indigo-600 rounded-lg flex items-center justify-center text-[11px] font-black text-white shadow-xl shadow-indigo-600/20">
-              2
+              {TOOL_CONFIG.filter(t => t.category === 'LANG').length}
             </div>
           </div>
 
@@ -323,7 +335,7 @@ export default function App() {
 
         <footer className="pt-10 pb-4 text-center">
           <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">
-            Developed by <span className="text-blue-600">Md Mirazul Fakir</span>
+            Developer by <span className="text-blue-600">Md Mirazul Fakir</span>
           </p>
         </footer>
       </motion.main>

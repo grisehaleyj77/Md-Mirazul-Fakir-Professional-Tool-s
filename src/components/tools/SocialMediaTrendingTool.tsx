@@ -201,17 +201,18 @@ export const SocialMediaTrendingTool = () => {
                     </div>
                     <div className="space-y-3">
                        {data.topics.map((topic, i) => (
-                         <button 
-                            key={i} 
-                            onClick={() => copyIndividual(topic, `topic-${i}`)}
-                            className="w-full flex items-center justify-between p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-transparent hover:border-slate-200 dark:hover:border-white/10 transition-all group/item"
-                          >
-                            <div className="flex items-center gap-3">
-                              <div className="w-2 h-2 bg-blue-500 rounded-full shadow-[0_0_8px_rgba(59,130,246,0.5)]" />
-                              <span className="text-xs font-black uppercase tracking-tight">{topic}</span>
-                            </div>
-                            {copiedId === `topic-${i}` ? <Check className="w-3 h-3 text-green-500" /> : <Copy className="w-3 h-3 text-slate-400 opacity-0 group-hover/item:opacity-100" />}
-                         </button>
+                         <div key={i} className="relative group/item">
+                           <button 
+                              onClick={() => copyIndividual(topic, `topic-${i}`)}
+                              className="w-full flex items-center justify-between p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-transparent hover:border-slate-200 dark:hover:border-white/10 transition-all"
+                            >
+                              <div className="flex items-center gap-3">
+                                <div className="w-2 h-2 bg-blue-500 rounded-full shadow-[0_0_8px_rgba(59,130,246,0.5)]" />
+                                <span className="text-xs font-black uppercase tracking-tight text-left">{topic}</span>
+                              </div>
+                              {copiedId === `topic-${i}` ? <Check className="w-3 h-3 text-green-500 shrink-0" /> : <Copy className="w-3 h-3 text-slate-400 opacity-0 group-hover/item:opacity-100 shrink-0" />}
+                           </button>
+                         </div>
                        ))}
                     </div>
                  </div>

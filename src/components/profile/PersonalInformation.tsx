@@ -76,8 +76,8 @@ export const PersonalInformation = ({
 
       <div className="grid grid-cols-1 gap-4">
         {[
-          { label: 'Full Name', value: 'Md Mirazul Fakir', icon: User, type: 'text' },
-          { label: 'Email Address', value: 'mirazul@example.com', icon: Mail, type: 'email' },
+          { label: 'Full Name', value: 'User', icon: User, type: 'text' },
+          { label: 'Email Address', value: 'user@example.com', icon: Mail, type: 'email' },
           { label: 'Phone Number', value: '+880 1700 000000', icon: Phone, type: 'tel' },
           { label: 'Location', value: 'Dhaka, Bangladesh', icon: MapPin, type: 'text' },
         ].map((field, i) => (

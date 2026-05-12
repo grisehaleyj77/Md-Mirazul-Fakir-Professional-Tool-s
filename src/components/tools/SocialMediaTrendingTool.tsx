@@ -22,9 +22,7 @@ import {
 } from 'lucide-react';
 
 import { motion, AnimatePresence } from 'motion/react';
-import { GoogleGenAI } from "@google/genai";
-
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+import { ai, GEMINI_API_KEY } from '../../lib/gemini';
 
 type Platform = 'YouTube' | 'Facebook' | 'Instagram' | 'TikTok';
 
@@ -50,7 +48,7 @@ export const SocialMediaTrendingTool = () => {
   ] as const;
 
   const fetchTrending = async () => {
-    if (!process.env.GEMINI_API_KEY) return;
+    if (!GEMINI_API_KEY) return;
     setLoading(true);
     setData(null);
 

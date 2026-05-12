@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import { Languages, Copy, Check, Loader2, Volume2, Sparkles, Globe2, Trash2 } from 'lucide-react';
 import { GoogleGenAI } from "@google/genai";
 import { motion, AnimatePresence } from 'motion/react';
-
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+import { ai, GEMINI_API_KEY } from '../../lib/gemini';
 
 type Language = 'bn' | 'en' | 'de';
 
@@ -21,7 +20,7 @@ export const Translator = () => {
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const translate = async () => {
-    if (!sourceText || !process.env.GEMINI_API_KEY) return;
+    if (!sourceText || !GEMINI_API_KEY) return;
     
     setIsTranslating(true);
     try {

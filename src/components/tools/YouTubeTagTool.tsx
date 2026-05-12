@@ -16,9 +16,7 @@ import {
   Maximize2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { GoogleGenAI } from "@google/genai";
-
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+import { ai, GEMINI_API_KEY } from '../../lib/gemini';
 
 export const YouTubeTagTool = () => {
   const [input, setInput] = useState('');
@@ -29,7 +27,7 @@ export const YouTubeTagTool = () => {
   const [analysis, setAnalysis] = useState<string | null>(null);
 
   const generateTags = async () => {
-    if (!input.trim() || !process.env.GEMINI_API_KEY) return;
+    if (!input.trim() || !GEMINI_API_KEY) return;
     setLoading(true);
     setTags([]);
     setAnalysis(null);

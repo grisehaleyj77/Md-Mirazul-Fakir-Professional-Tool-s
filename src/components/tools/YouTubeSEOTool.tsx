@@ -16,9 +16,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { GoogleGenAI } from "@google/genai";
-
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+import { ai, GEMINI_API_KEY } from '../../lib/gemini';
 
 type ToolTab = 'titles' | 'tags' | 'description' | 'audit';
 
@@ -30,7 +28,7 @@ export const YouTubeSEOTool = () => {
   const [copied, setCopied] = useState(false);
 
   const handleGenerate = async () => {
-    if (!input.trim() || !process.env.GEMINI_API_KEY) return;
+    if (!input.trim() || !GEMINI_API_KEY) return;
     setLoading(true);
     setResults(null);
 

@@ -17,9 +17,7 @@ import {
   Trophy
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { GoogleGenAI } from "@google/genai";
-
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+import { ai, GEMINI_API_KEY } from '../../lib/gemini';
 
 type ResearchTab = 'trending' | 'keywords' | 'competitors' | 'niche';
 
@@ -31,7 +29,7 @@ export const YouTubeResearchTool = () => {
   const [copied, setCopied] = useState(false);
 
   const handleResearch = async () => {
-    if (!input.trim() || !process.env.GEMINI_API_KEY) return;
+    if (!input.trim() || !GEMINI_API_KEY) return;
     setLoading(true);
     setResults(null);
 

@@ -17,9 +17,7 @@ import {
   Loader2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { GoogleGenAI } from "@google/genai";
-
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+import { ai, GEMINI_API_KEY } from '../../lib/gemini';
 
 export const HashtagGenerator = () => {
   const [input, setInput] = useState('');
@@ -39,7 +37,7 @@ export const HashtagGenerator = () => {
 
   const generateHashtags = async () => {
     if (!input.trim()) return;
-    if (!process.env.GEMINI_API_KEY) {
+    if (!GEMINI_API_KEY) {
       alert("API Key missing. Please check configuration.");
       return;
     }

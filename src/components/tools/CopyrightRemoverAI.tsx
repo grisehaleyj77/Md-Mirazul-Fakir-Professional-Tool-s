@@ -1,10 +1,8 @@
 import React, { useState, useRef } from 'react';
 import { Sparkles, Upload, Download, RefreshCw, Undo, Redo, Loader2, Wand2, ShieldAlert, Scan, AlertCircle } from 'lucide-react';
 import { ReactSketchCanvas, ReactSketchCanvasRef } from 'react-sketch-canvas';
-import { GoogleGenAI, Type } from "@google/genai";
 import { motion, AnimatePresence } from 'motion/react';
-
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+import { ai, GEMINI_API_KEY } from '../../lib/gemini';
 
 export const CopyrightRemoverAI = () => {
   const [image, setImage] = useState<string | null>(null);

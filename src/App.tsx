@@ -24,12 +24,15 @@ import {
   FileUp,
   FileDown,
   Monitor,
+  Facebook,
+  Clock,
   Book,
   Hash,
   Mic,
   Volume2,
   User,
   Camera,
+  Rotate3d,
   BarChart2,
   Radio,
   Flame,
@@ -51,6 +54,7 @@ import { PDFPageNumbering } from './components/tools/PDFPageNumbering';
 import { WordEditor } from './components/tools/WordEditor';
 import { OCRTool } from './components/tools/OCRTool';
 import { QRSuite } from './components/tools/QRSuite';
+import { QRScanner } from './components/tools/QRScanner';
 import { ImageBeautifier } from './components/tools/ImageBeautifier';
 import { WatermarkRemover } from './components/tools/WatermarkRemover';
 import { PictureMagicLayers } from './components/tools/PictureMagicLayers';
@@ -68,6 +72,8 @@ import { VideoEditor } from './components/tools/VideoEditor';
 import { VideoToAudio } from './components/tools/VideoToAudio';
 import { AudioEditor } from './components/tools/AudioEditor';
 import { BanglaCalendar } from './components/tools/BanglaCalendar';
+import { TrendingPhotoStyle } from './components/tools/TrendingPhotoStyle';
+import { MusicStudioPro } from './components/tools/MusicStudioPro';
 import { Subscription } from './components/Subscription';
 import { Profile } from './components/Profile';
 import { ScreenshotEditor } from './components/tools/ScreenshotEditor';
@@ -76,11 +82,17 @@ import { YouTubeSEOTool } from './components/tools/YouTubeSEOTool';
 import { YouTubeResearchTool } from './components/tools/YouTubeResearchTool';
 import { YouTubeTagTool } from './components/tools/YouTubeTagTool';
 import { SocialMediaTrendingTool } from './components/tools/SocialMediaTrendingTool';
+import { PictureTo360 } from './components/tools/PictureTo360';
+import { AgeCalculator } from './components/tools/AgeCalculator';
+import { NumberToWordTool } from './components/tools/NumberToWordTool';
+import { ImageToPdfTool } from './components/tools/ImageToPdfTool';
+import { ImageToWordTool } from './components/tools/ImageToWordTool';
 
 const TOOL_CONFIG = [
   // Document Category
   { id: 'word-editor', name: 'Word Editor', description: 'Edit & Save docx', category: 'DOC', icon: FileText, color: 'bg-[#2563eb]', component: WordEditor },
-  { id: 'pic-to-pdf', name: 'Pic to PDF', description: 'Convert image to PDF', category: 'DOC', icon: ImageIcon, color: 'bg-[#14b8a6]', component: PDFMerge }, 
+  { id: 'pic-to-pdf', name: 'Pic to PDF', description: 'Convert image to PDF', category: 'DOC', icon: ImageIcon, color: 'bg-[#14b8a6]', component: ImageToPdfTool }, 
+  { id: 'pic-to-word', name: 'Pic to Word', description: 'Convert image to Word', category: 'DOC', icon: FileText, color: 'bg-[#2563eb]', component: ImageToWordTool },
   { id: 'word-to-pdf', name: 'Word to PDF', description: 'Convert doc to PDF', category: 'DOC', icon: FileText, color: 'bg-[#2563eb]', component: WordToPDF },
   { id: 'pdf-to-word', name: 'PDF to Word', description: 'Convert PDF to doc', category: 'DOC', icon: FileDown, color: 'bg-[#0ea5e9]', component: PDFToWord },
   { id: 'excel-to-pdf', name: 'Excel to PDF', description: 'Convert xls to PDF', category: 'DOC', icon: FileSpreadsheet, color: 'bg-[#059669]', component: ExcelToPDF },
@@ -95,6 +107,8 @@ const TOOL_CONFIG = [
   // AI & Media Category
   { id: 'video-editor', name: 'Video Studio Pro', description: 'Elite Trim & Merge', category: 'AI', icon: Video, color: 'bg-[#6366f1]', component: VideoEditor },
   { id: 'video-to-audio', name: 'Video to Audio', description: 'Extract Master Audio', category: 'AI', icon: Music, color: 'bg-[#a855f7]', component: VideoToAudio },
+  { id: 'music-studio', name: 'Music Studio Pro', description: 'AI Music Gen (Suno)', category: 'AI', icon: Music, color: 'bg-[#8b5cf6]', component: MusicStudioPro },
+  { id: 'photo-trends', name: 'Photo Style Pro', description: 'Live Photo Trends', category: 'AI', icon: Camera, color: 'bg-[#ec4899]', component: TrendingPhotoStyle },
   { id: 'audio-editor', name: 'Audio Studio Pro', description: 'Trim & Merge Tracks', category: 'AI', icon: Mic, color: 'bg-[#f59e0b]', component: AudioEditor },
   { id: 'sm-trends', name: 'Social Trends', description: 'Live viral topics', category: 'AI', icon: Flame, color: 'bg-[#ff5722]', component: SocialMediaTrendingTool },
   { id: 'yt-tags', name: 'YT Tag Live', description: 'Viral tag generation', category: 'AI', icon: Tag, color: 'bg-[#ff0000]', component: YouTubeTagTool },
@@ -110,9 +124,13 @@ const TOOL_CONFIG = [
   { id: 'watermark-remover', name: 'No Watermark', description: 'AI Logo remover', category: 'AI', icon: Layers, color: 'bg-[#f43f5e]', component: WatermarkRemover },
   { id: 'magic-layers', name: 'Magic Layers', description: 'Text behind images', category: 'AI', icon: Layers, color: 'bg-[#8b5cf6]', component: PictureMagicLayers },
   { id: 'image-beautifier', name: 'Beautifier', description: 'AI Photo enhancement', category: 'AI', icon: Zap, color: 'bg-[#d946ef]', component: ImageBeautifier },
+  { id: 'picture-to-360', name: '360° Vision', description: 'Immersive 3D Converter', category: 'AI', icon: Rotate3d, color: 'bg-[#6366f1]', component: PictureTo360 },
 
   // Utilities
-  { id: 'qr-suite', name: 'QR Suite', description: 'Gen & Scan QR', category: 'UTIL', icon: QrCode, color: 'bg-[#06b6d4]', component: QRSuite },
+  { id: 'age-calculator', name: 'Age Calculator', description: 'Astronomical Age Breakdown', category: 'UTIL', icon: Clock, color: 'bg-[#6366f1]', component: AgeCalculator },
+  { id: 'qr-scanner', name: 'QR Scanner Elite', description: 'Fast Camera/File Scan', category: 'UTIL', icon: Camera, color: 'bg-[#4f46e5]', component: QRScanner },
+  { id: 'qr-suite', name: 'QR Generator', description: 'Create custom QR codes', category: 'UTIL', icon: QrCode, color: 'bg-[#06b6d4]', component: QRSuite },
+  { id: 'num-to-word', name: 'Number to Word', description: 'Numeric Linguistics', category: 'UTIL', icon: Hash, color: 'bg-cyan-600', component: NumberToWordTool },
   { id: 'calculator', name: 'Calcu AI', description: 'Voice Calculator', category: 'UTIL', icon: Box, color: 'bg-[#f59e0b]', component: Calculator },
   { id: 'heic-converter', name: 'HEIC 2 JPG', description: 'iPhone image fix', category: 'UTIL', icon: ImageIcon, color: 'bg-[#14b8a6]', component: HEICConverter },
   { id: 'stt-ai', name: 'Voice 2 Text', description: 'Real-time AI typing', category: 'UTIL', icon: Mic, color: 'bg-[#8b5cf6]', component: STTAI },

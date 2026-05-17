@@ -1,7 +1,8 @@
 import { GoogleGenAI } from "@google/genai";
 
 // Standardize API key access for local, Netlify, and other deployments
-// Vite uses import.meta.env, while process.env might be used in some environments
-export const GEMINI_API_KEY = (import.meta.env.VITE_GEMINI_API_KEY as string) || (process.env.GEMINI_API_KEY as string) || "";
+// In this specific environment, process.env.GEMINI_API_KEY is the source of truth for free tier
+// process.env.API_KEY is the source of truth for user-selected paid keys
+export const GEMINI_API_KEY = process.env.API_KEY || process.env.GEMINI_API_KEY || "";
 
 export const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });

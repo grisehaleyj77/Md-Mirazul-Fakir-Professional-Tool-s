@@ -1,8 +1,11 @@
 {
   "name": "MMF Tools Elite",
-  "description": "A comprehensive suite of AI-powered document, image, and video tools.",
+  "description": "A comprehensive suite of AI-powered document, image, and immersive 3D tools.",
   "requestFramePermissions": [
     "camera",
     "microphone"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
   ]
 }

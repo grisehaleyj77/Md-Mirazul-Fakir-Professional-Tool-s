@@ -1,48 +1,65 @@
 import React, { useState, useEffect } from 'react';
-import { Mic, Volume2, Play, Pause, RotateCcw, Download, Settings2, Loader2, Music } from 'lucide-react';
+import { Mic, Volume2, Play, Pause, RotateCcw, Download, Settings2, Loader2, Music, Sparkles } from 'lucide-react';
+import { GoogleGenAI, Modality } from "@google/genai";
+import { GEMINI_API_KEY, ai } from '../../lib/gemini';
 
 export const TTSAI = () => {
   const [text, setText] = useState('');
-  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
-  const [selectedVoiceIndex, setSelectedVoiceIndex] = useState<number>(0);
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [isSynthesizing, setIsSynthesizing] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
   const [pitch, setPitch] = useState(1);
   const [rate, setRate] = useState(1);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isSynthesizing, setIsSynthesizing] = useState(false);
+  const [voice, setVoice] = useState<'A' | 'B' | 'C' | 'D'>('A');
 
-  useEffect(() => {
-    const loadVoices = () => {
-      const v = window.speechSynthesis.getVoices();
-      setVoices(v);
-      if (v.length > 0 && selectedVoiceIndex >= v.length) {
-        setSelectedVoiceIndex(0);
+  const generateSpeech = async () => {
+    if (!text || !GEMINI_API_KEY) return;
+    
+    setIsSynthesizing(true);
+    try {
+      const genAI = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
+      
+      const response = await ai.models.generateContent({
+        model: "gemini-3.1-flash-tts-preview",
+        contents: [{ parts: [{ text: `Say with pace ${rate} and pitch ${pitch}: ${text}` }] }],
+        config: {
+          responseModalities: [Modality.AUDIO],
+          speechConfig: {
+            voiceConfig: {
+              prebuiltVoiceConfig: { voiceName: 'Zephyr' }
+            }
+          }
+        }
+      });
+
+      const audioBase64 = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+      const mimeType = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.mimeType || "audio/mp3";
+
+      if (audioBase64) {
+        const binary = atob(audioBase64);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) {
+          bytes[i] = binary.charCodeAt(i);
+        }
+        const blob = new Blob([bytes], { type: mimeType });
+        if (audioUrl) URL.revokeObjectURL(audioUrl);
+        setAudioUrl(URL.createObjectURL(blob));
       }
-    };
-
-    loadVoices();
-    window.speechSynthesis.onvoiceschanged = loadVoices;
-  }, []);
-
-  const speak = () => {
-    if (!text) return;
-    
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    const voice = voices[selectedVoiceIndex];
-    if (voice) utterance.voice = voice;
-    utterance.pitch = pitch;
-    utterance.rate = rate;
-    
-    utterance.onstart = () => setIsPlaying(true);
-    utterance.onend = () => setIsPlaying(false);
-    utterance.onerror = () => setIsPlaying(false);
-    
-    window.speechSynthesis.speak(utterance);
+    } catch (error) {
+      console.error('Speech synthesis failed:', error);
+    } finally {
+      setIsSynthesizing(false);
+    }
   };
 
-  const stop = () => {
-    window.speechSynthesis.cancel();
-    setIsPlaying(false);
+  const handleDownload = () => {
+    if (!audioUrl) return;
+    const link = document.createElement('a');
+    link.href = audioUrl;
+    link.download = `TTS_AI_${Date.now()}.mp3`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
@@ -67,17 +84,31 @@ export const TTSAI = () => {
 
               <div className="flex gap-4 mt-6">
                  <button
-                   onClick={isPlaying ? stop : speak}
-                   className={`flex-1 ${isPlaying ? 'bg-red-500' : 'bg-purple-600'} text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 hover:opacity-90 transition-all shadow-lg shadow-purple-600/20`}
+                   onClick={generateSpeech}
+                   disabled={isSynthesizing || !text}
+                   className="flex-1 bg-purple-600 text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 hover:opacity-90 transition-all shadow-lg shadow-purple-600/20 disabled:opacity-50"
                  >
-                   {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
-                   {isPlaying ? 'Stop Playing' : 'Start Reading'}
+                   {isSynthesizing ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5 shadow-inner" />}
+                   {isSynthesizing ? 'Synthesizing...' : 'Generate AI Voice'}
                  </button>
+                 {audioUrl && (
+                    <button
+                      onClick={() => {
+                        const audio = new Audio(audioUrl);
+                        audio.onplay = () => setIsPlaying(true);
+                        audio.onended = () => setIsPlaying(false);
+                        audio.play();
+                      }}
+                      className="p-4 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-600/20"
+                    >
+                      {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
+                    </button>
+                 )}
                  <button
-                   onClick={() => setText('')}
+                   onClick={() => { setText(''); setAudioUrl(null); }}
                    className="p-4 bg-[var(--bg)] border border-[var(--glass-border)] text-slate-400 rounded-xl hover:bg-[var(--line)] transition-all"
                  >
-                   <RotateCcw className="w-5 h-5" />
+                    <RotateCcw className="w-5 h-5" />
                  </button>
               </div>
            </div>
@@ -92,16 +123,11 @@ export const TTSAI = () => {
 
               <div className="space-y-6">
                  <div>
-                    <label className="block text-xs font-bold text-gray-400 uppercase mb-3">Select Voice</label>
-                    <select 
-                      value={selectedVoiceIndex} 
-                      onChange={(e) => setSelectedVoiceIndex(Number(e.target.value))}
-                      className="w-full bg-gray-50 border border-gray-100 rounded-xl p-3 text-sm focus:ring-2 focus:ring-purple-500 outline-none"
-                    >
-                      {voices.map((v, i) => (
-                        <option key={`${v.name}-${v.lang}-${i}`} value={i}>{v.name} ({v.lang})</option>
-                      ))}
-                    </select>
+                    <label className="block text-xs font-bold text-gray-400 uppercase mb-3">AI Engine Output</label>
+                    <div className="w-full bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5 rounded-xl p-3 text-sm flex items-center gap-2 text-indigo-500 font-bold">
+                       <Sparkles className="w-4 h-4" />
+                       Speech Pro v1.0
+                    </div>
                  </div>
 
                  <div>
@@ -133,9 +159,13 @@ export const TTSAI = () => {
            <div className="bg-purple-900 rounded-3xl p-8 text-white relative overflow-hidden group">
               <div className="relative z-10">
                  <Music className="w-10 h-10 mb-4 opacity-50 transition-transform group-hover:scale-110" />
-                 <h4 className="font-bold mb-2">Save as MP3?</h4>
-                 <p className="text-purple-300 text-xs leading-relaxed mb-6">Recording functionality is coming soon for high-quality audio downloads.</p>
-                 <button disabled className="w-full bg-white/10 backdrop-blur-md text-white py-3 rounded-xl text-xs font-bold opacity-50 cursor-not-allowed">
+                 <h4 className="font-bold mb-2">Save as MP3</h4>
+                 <p className="text-purple-300 text-xs leading-relaxed mb-6">High-quality professional audio ready for your workspace.</p>
+                 <button 
+                   onClick={handleDownload}
+                   disabled={!audioUrl}
+                   className="w-full bg-white/10 backdrop-blur-md text-white py-3 rounded-xl text-xs font-bold hover:bg-white/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                 >
                     Download Audio
                  </button>
               </div>

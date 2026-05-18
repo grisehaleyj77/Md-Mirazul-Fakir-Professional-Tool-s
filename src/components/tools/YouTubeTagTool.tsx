@@ -15,7 +15,7 @@ import {
   Lightbulb,
   Maximize2
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ai, GEMINI_API_KEY } from '../../lib/gemini';
 
 export const YouTubeTagTool = () => {

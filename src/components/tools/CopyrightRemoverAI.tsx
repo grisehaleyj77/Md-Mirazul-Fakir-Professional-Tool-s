@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Sparkles, Upload, Download, RefreshCw, Undo, Redo, Loader2, Wand2, ShieldAlert, Scan, AlertCircle } from 'lucide-react';
 import { ReactSketchCanvas, ReactSketchCanvasRef } from 'react-sketch-canvas';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ai, GEMINI_API_KEY } from '../../lib/gemini';
 
 export const CopyrightRemoverAI = () => {

@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Layers, Type, Download, Image as ImageIcon, Loader2, Move, Trash2, Sliders, ChevronRight, ChevronLeft, Sparkles } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { removeBackground } from '@imgly/background-removal';
 
 interface TextLayer {

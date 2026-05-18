@@ -15,33 +15,17 @@ import {
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { 
   OrbitControls, 
-  PerspectiveCamera, 
   Html, 
   useProgress, 
-  Environment,
-  ContactShadows,
   useTexture
 } from '@react-three/drei';
 import * as THREE from 'three';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // --- Viewer Component ---
 
 const SphereViewer = ({ imageUrl, mode }: { imageUrl: string; mode: '360' | '3D' }) => {
   const texture = useTexture(imageUrl);
-  
-  useEffect(() => {
-    if (texture) {
-      try {
-        texture.wrapS = THREE.RepeatWrapping;
-        texture.wrapT = THREE.RepeatWrapping;
-        texture.needsUpdate = true;
-      } catch (e) {
-        console.warn('Failed to set texture wrapping', e);
-      }
-    }
-  }, [texture]);
-  
   const meshRef = useRef<THREE.Mesh>(null);
 
   useFrame((state) => {
@@ -75,7 +59,6 @@ const SphereViewer = ({ imageUrl, mode }: { imageUrl: string; mode: '360' | '3D'
         <>
           <ambientLight intensity={0.5} />
           <pointLight position={[10, 10, 10]} intensity={1} />
-          <ContactShadows opacity={0.4} scale={20} blur={2.4} far={4.5} />
         </>
       )}
     </group>
@@ -196,7 +179,10 @@ export const PictureTo360 = () => {
               exit={{ opacity: 0 }}
               className="w-full h-full"
             >
-              <Canvas shadows gl={{ preserveDrawingBuffer: true }}>
+              <Canvas 
+                gl={{ preserveDrawingBuffer: true }}
+                camera={{ position: [0, 0, 0.1], fov: 75 }}
+              >
                 <Suspense fallback={<LoadingScreen />}>
                   <SphereViewer imageUrl={image} mode={viewMode} />
                   <OrbitControls 
@@ -207,7 +193,6 @@ export const PictureTo360 = () => {
                     minDistance={viewMode === '3D' ? 5 : 0.1}
                     maxDistance={viewMode === '3D' ? 20 : 0.5}
                   />
-                  <PerspectiveCamera makeDefault position={[0, 0, 0.1]} fov={75} />
                 </Suspense>
               </Canvas>
 

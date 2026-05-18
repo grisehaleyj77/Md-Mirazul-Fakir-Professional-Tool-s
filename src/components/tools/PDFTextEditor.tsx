@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Download, Loader2, Plus, File, Edit3, Check, Settings } from 'lucide-react';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export const PDFTextEditor = () => {
   const [file, setFile] = useState<File | null>(null);

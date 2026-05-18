@@ -18,7 +18,7 @@ import {
   Copy,
   Check
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Document, Packer, Paragraph, TextRun, HeadingLevel, ImageRun } from 'docx';
 import { saveAs } from 'file-saver';
 import { GoogleGenAI } from "@google/genai";

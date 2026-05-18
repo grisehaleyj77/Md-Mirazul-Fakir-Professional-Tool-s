@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import QRCode from 'qrcode';
 import { QrCode, Download, Send, RefreshCw, Smartphone } from 'lucide-react';
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 
 export const QRSuite = () => {
   const [text, setText] = useState('');

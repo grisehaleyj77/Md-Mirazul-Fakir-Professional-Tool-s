@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { FileCode, Download, Loader2, Plus, X, ArrowUp, ArrowDown, File, Check } from 'lucide-react';
 import { PDFDocument } from 'pdf-lib';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export const PDFMerge = () => {
   const [files, setFiles] = useState<File[]>([]);

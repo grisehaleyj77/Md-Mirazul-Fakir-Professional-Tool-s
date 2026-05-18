@@ -16,7 +16,7 @@ import {
   AlertCircle,
   Loader2
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ai, GEMINI_API_KEY } from '../../lib/gemini';
 
 export const HashtagGenerator = () => {

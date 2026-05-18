@@ -14,7 +14,7 @@ import {
   CheckCircle2,
   ArrowRight
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { jsPDF } from 'jspdf';
 
 interface ImageData {

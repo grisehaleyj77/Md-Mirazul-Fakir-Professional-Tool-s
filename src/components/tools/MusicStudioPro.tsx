@@ -26,7 +26,7 @@ import {
   Info,
   ExternalLink
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { GoogleGenAI, Modality } from "@google/genai";
 import { GEMINI_API_KEY } from '../../lib/gemini';
 

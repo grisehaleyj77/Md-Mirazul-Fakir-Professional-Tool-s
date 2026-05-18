@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { User, Mail, Phone, MapPin, Camera, Save, CheckCircle2, ArrowRight } from 'lucide-react';
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 
 export const PersonalInformation = ({ 
   onBack, 

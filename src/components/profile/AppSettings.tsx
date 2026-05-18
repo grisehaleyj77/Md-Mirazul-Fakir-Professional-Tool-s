@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Settings, Moon, Sun, Globe, Bell, Smartphone, ArrowRight } from 'lucide-react';
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 
 export const AppSettings = ({ onBack, isDarkMode, onToggleTheme }: { onBack: () => void, isDarkMode: boolean, onToggleTheme: () => void }) => {
   const [settings, setSettings] = useState({

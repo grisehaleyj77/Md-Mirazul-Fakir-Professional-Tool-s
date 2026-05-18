@@ -18,7 +18,7 @@ import {
   Download,
   Check
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ai, GEMINI_API_KEY } from '../../lib/gemini';
 
 interface StyleTrend {

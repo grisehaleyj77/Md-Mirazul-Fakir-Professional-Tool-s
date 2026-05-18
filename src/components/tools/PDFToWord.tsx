@@ -3,7 +3,7 @@ import { FileCode, Download, Upload, Loader2, FileCheck, AlertCircle, FileText, 
 import * as pdfjs from 'pdfjs-dist';
 import { Document, Packer, Paragraph, TextRun } from 'docx';
 import { saveAs } from 'file-saver';
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 
 // Set worker source for pdfjs
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;

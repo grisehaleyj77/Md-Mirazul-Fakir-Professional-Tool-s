@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Download, Loader2, Plus, X, File, Zap, Settings, Check } from 'lucide-react';
 import { PDFDocument } from 'pdf-lib';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export const PDFCompress = () => {
   const [files, setFiles] = useState<File[]>([]);

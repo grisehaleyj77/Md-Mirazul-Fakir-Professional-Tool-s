@@ -1,7 +1,7 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { Camera, Save, Trash2, ChevronLeft, ChevronRight, Download, Loader2, RotateCw, Image as ImageIcon, Sparkles, Plus, X } from 'lucide-react';
 import { jsPDF } from 'jspdf';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface ScannedPage {
   id: string;

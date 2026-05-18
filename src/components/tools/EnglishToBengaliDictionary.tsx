@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Search, Volume2, Languages, Book, Copy, Check, Loader2, Sparkles, MessageCircle } from 'lucide-react';
 import { GoogleGenAI } from "@google/genai";
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ai, GEMINI_API_KEY } from '../../lib/gemini';
 
 interface WordResult {

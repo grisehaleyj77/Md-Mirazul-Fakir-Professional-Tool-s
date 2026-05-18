@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { FileCode, Download, Upload, Loader2, FileCheck, AlertCircle, FileSpreadsheet } from 'lucide-react';
 import * as pdfjs from 'pdfjs-dist';
 import * as XLSX from 'xlsx';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // Set worker source for pdfjs
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;

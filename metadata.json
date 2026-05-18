@@ -1,5 +1,5 @@
 {
-  "name": "MMF Tools Elite",
+  "name": "MMF Tools",
   "description": "A comprehensive suite of AI-powered document, image, and immersive 3D tools.",
   "requestFramePermissions": [
     "camera",

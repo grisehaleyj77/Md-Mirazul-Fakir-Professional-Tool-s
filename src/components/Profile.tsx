@@ -14,7 +14,7 @@ import {
   Briefcase,
   Zap
 } from 'lucide-react';
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 
 export const Profile = ({ userStatus, onUpdateName }: any) => {
   const [activeSubView, setActiveSubView] = React.useState<string | null>(null);

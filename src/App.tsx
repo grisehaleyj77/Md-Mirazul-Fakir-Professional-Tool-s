@@ -13,6 +13,7 @@ import {
   Tag,
   FileSpreadsheet, 
   FileType, 
+  Type,
   ShieldAlert,
   Youtube,
   Video,
@@ -39,7 +40,7 @@ import {
   Gamepad2,
   Calendar as CalendarIcon
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // Tools
 import { PDFMerge } from './components/tools/PDFMerge';
@@ -82,15 +83,17 @@ import { YouTubeSEOTool } from './components/tools/YouTubeSEOTool';
 import { YouTubeResearchTool } from './components/tools/YouTubeResearchTool';
 import { YouTubeTagTool } from './components/tools/YouTubeTagTool';
 import { SocialMediaTrendingTool } from './components/tools/SocialMediaTrendingTool';
-import { PictureTo360 } from './components/tools/PictureTo360';
+// import { PictureTo360 } from './components/tools/PictureTo360';
 import { AgeCalculator } from './components/tools/AgeCalculator';
 import { NumberToWordTool } from './components/tools/NumberToWordTool';
 import { ImageToPdfTool } from './components/tools/ImageToPdfTool';
 import { ImageToWordTool } from './components/tools/ImageToWordTool';
+import { WordCounterTool } from './components/tools/WordCounterTool';
 
 const TOOL_CONFIG = [
   // Document Category
   { id: 'word-editor', name: 'Word Editor', description: 'Edit & Save docx', category: 'DOC', icon: FileText, color: 'bg-[#2563eb]', component: WordEditor },
+  { id: 'word-counter', name: 'Word Counter', description: 'Real-time text stats', category: 'DOC', icon: Type, color: 'bg-[#f43f5e]', component: WordCounterTool },
   { id: 'pic-to-pdf', name: 'Pic to PDF', description: 'Convert image to PDF', category: 'DOC', icon: ImageIcon, color: 'bg-[#14b8a6]', component: ImageToPdfTool }, 
   { id: 'pic-to-word', name: 'Pic to Word', description: 'Convert image to Word', category: 'DOC', icon: FileText, color: 'bg-[#2563eb]', component: ImageToWordTool },
   { id: 'word-to-pdf', name: 'Word to PDF', description: 'Convert doc to PDF', category: 'DOC', icon: FileText, color: 'bg-[#2563eb]', component: WordToPDF },
@@ -124,7 +127,7 @@ const TOOL_CONFIG = [
   { id: 'watermark-remover', name: 'No Watermark', description: 'AI Logo remover', category: 'AI', icon: Layers, color: 'bg-[#f43f5e]', component: WatermarkRemover },
   { id: 'magic-layers', name: 'Magic Layers', description: 'Text behind images', category: 'AI', icon: Layers, color: 'bg-[#8b5cf6]', component: PictureMagicLayers },
   { id: 'image-beautifier', name: 'Beautifier', description: 'AI Photo enhancement', category: 'AI', icon: Zap, color: 'bg-[#d946ef]', component: ImageBeautifier },
-  { id: 'picture-to-360', name: '360° Vision', description: 'Immersive 3D Converter', category: 'AI', icon: Rotate3d, color: 'bg-[#6366f1]', component: PictureTo360 },
+  // { id: 'picture-to-360', name: '360° Vision', description: 'Immersive 3D Converter', category: 'AI', icon: Rotate3d, color: 'bg-[#6366f1]', component: PictureTo360 },
 
   // Utilities
   { id: 'age-calculator', name: 'Age Calculator', description: 'Astronomical Age Breakdown', category: 'UTIL', icon: Clock, color: 'bg-[#6366f1]', component: AgeCalculator },

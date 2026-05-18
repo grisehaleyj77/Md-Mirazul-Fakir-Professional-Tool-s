@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Html5QrcodeScanner, Html5Qrcode, Html5QrcodeResult, Html5QrcodeScannerState } from 'html5-qrcode';
 import { QrCode, Camera, Upload, CheckCircle2, AlertCircle, Copy, ExternalLink, RefreshCw, XCircle } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export const QRScanner = () => {
   const [scanResult, setScanResult] = useState<string | null>(null);

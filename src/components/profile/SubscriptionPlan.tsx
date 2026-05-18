@@ -1,6 +1,6 @@
 import React from 'react';
 import { Cpu, Check, ArrowRight, Star, Zap } from 'lucide-react';
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 
 export const SubscriptionPlan = ({ onBack }: { onBack: () => void }) => {
   const plans = [

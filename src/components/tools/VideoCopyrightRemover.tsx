@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Youtube, Upload, Download, Loader2, Sparkles, Scissors, Volume2, ShieldCheck, Zap, Trash2, Maximize, RefreshCcw, Layout, Play, Pause } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export const VideoCopyrightRemover = () => {
   const [videoFile, setVideoFile] = useState<File | null>(null);

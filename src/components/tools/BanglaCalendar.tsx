@@ -10,7 +10,7 @@ import {
   Moon,
   Sparkles
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // Bengali Data Constants
 const BN_MONTHS = [

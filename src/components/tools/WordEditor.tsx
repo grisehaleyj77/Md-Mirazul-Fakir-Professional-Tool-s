@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import * as mammoth from 'mammoth';
 import { Document, Packer, Paragraph, TextRun, AlignmentType } from 'docx';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export const WordEditor = () => {
   const [file, setFile] = useState<File | null>(null);

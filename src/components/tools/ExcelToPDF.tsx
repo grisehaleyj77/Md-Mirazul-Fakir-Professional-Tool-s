@@ -3,7 +3,7 @@ import { Download, Upload, Loader2, FileCheck, AlertCircle, FileType, FileCode }
 import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export const ExcelToPDF = () => {
   const [file, setFile] = useState<File | null>(null);

@@ -15,7 +15,7 @@ import {
   ChevronLeft,
   ChevronRight
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import * as fabric from 'fabric';
 
 export const ScreenshotEditor = () => {

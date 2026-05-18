@@ -1,6 +1,6 @@
 import React from 'react';
 import { Layers, ShieldCheck, Key, Eye, EyeOff, ArrowRight, Trash2 } from 'lucide-react';
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 
 export const SecurityPrivacy = ({ onBack }: { onBack: () => void }) => {
   return (

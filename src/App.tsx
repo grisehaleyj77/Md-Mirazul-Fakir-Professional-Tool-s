@@ -49,7 +49,8 @@ import {
   Link2,
   Barcode as BarcodeIcon,
   MessageSquare,
-  RefreshCw
+  RefreshCw,
+  SpellCheck
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -118,6 +119,7 @@ import { LinkShortener } from './components/tools/LinkShortener';
 import { ScientificCalculator } from './components/tools/ScientificCalculator';
 import { WorldMapTool } from './components/tools/WorldMapTool';
 import { Bangladesh3DMap } from './components/tools/Bangladesh3DMap';
+import { GrammarChecker } from './components/tools/GrammarChecker';
 
 const TOOL_CONFIG = [
   // Document Category
@@ -180,6 +182,7 @@ const TOOL_CONFIG = [
   { id: 'bangla-calendar', name: 'Live Calendar', description: 'English & Bangla dual kit', category: 'UTIL', icon: CalendarIcon, color: 'bg-[#4f46e5]', component: BanglaCalendar },
   { id: 'world-map', name: 'World Explorer', description: 'Interactive Map Intelligence', category: 'UTIL', icon: Globe, color: 'bg-blue-600', component: WorldMapTool },
   { id: 'bd-map-3d', name: 'BD Map 3D', description: 'Bangladesh District Explorer', category: 'UTIL', icon: MapIcon, color: 'bg-emerald-600', component: Bangladesh3DMap },
+  { id: 'grammar-pro', name: 'AI Grammar', description: 'Fix & Perfect text', category: 'LANG', icon: SpellCheck, color: 'bg-indigo-600', component: GrammarChecker },
 
   // Language
   { id: 'translator', name: 'Translate', description: 'AI Language expert', category: 'LANG', icon: Languages, color: 'bg-[#10b981]', component: Translator },

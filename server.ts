@@ -121,6 +121,52 @@ async function startServer() {
     }
   });
 
+  app.post("/api/grammar-check", async (req, res) => {
+    const { text } = req.body;
+    if (!text) {
+      return res.status(400).json({ error: "Text is required" });
+    }
+
+    try {
+      const response = await ai.models.generateContent({
+        model: "gemini-flash-latest",
+        contents: `Analyze the following text for grammar, spelling, and style errors. Provide the original text, the corrected text, and a list of specific errors found with explanations.
+        
+        Text: "${text}"`,
+        config: {
+          systemInstruction: "You are an expert English proofreader. Analyze text for errors. Return ONLY a JSON object containing 'original', 'corrected', and an array 'errors' where each error has 'type' (grammar, spelling, style), 'original', 'fix', and 'explanation'.",
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              original: { type: Type.STRING },
+              corrected: { type: Type.STRING },
+              errors: {
+                type: Type.ARRAY,
+                items: {
+                  type: Type.OBJECT,
+                  properties: {
+                    type: { type: Type.STRING },
+                    original: { type: Type.STRING },
+                    fix: { type: Type.STRING },
+                    explanation: { type: Type.STRING }
+                  }
+                }
+              },
+              overallFeedback: { type: Type.STRING }
+            }
+          }
+        },
+      });
+
+      const data = JSON.parse(response.text || "{}");
+      res.json(data);
+    } catch (error: any) {
+      console.error('Grammar check error:', error);
+      res.status(500).json({ error: "AI analysis failed. Please try again later." });
+    }
+  });
+
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({

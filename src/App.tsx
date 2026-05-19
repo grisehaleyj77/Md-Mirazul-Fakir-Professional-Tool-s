@@ -44,6 +44,7 @@ import {
   Shield,
   Binary,
   Globe,
+  Map as MapIcon,
   Maximize2,
   Link2,
   Barcode as BarcodeIcon,
@@ -115,6 +116,8 @@ import { WhatsAppTool } from './components/tools/WhatsAppTool';
 import { ImageConverter } from './components/tools/ImageConverter';
 import { LinkShortener } from './components/tools/LinkShortener';
 import { ScientificCalculator } from './components/tools/ScientificCalculator';
+import { WorldMapTool } from './components/tools/WorldMapTool';
+import { Bangladesh3DMap } from './components/tools/Bangladesh3DMap';
 
 const TOOL_CONFIG = [
   // Document Category
@@ -175,6 +178,8 @@ const TOOL_CONFIG = [
   { id: 'stt-ai', name: 'Voice 2 Text', description: 'Real-time AI typing', category: 'UTIL', icon: Mic, color: 'bg-[#8b5cf6]', component: STTAI },
   { id: 'tts-ai', name: 'Text 2 Voice', description: 'AI natural speech', category: 'UTIL', icon: Volume2, color: 'bg-[#ec4899]', component: TTSAI },
   { id: 'bangla-calendar', name: 'Live Calendar', description: 'English & Bangla dual kit', category: 'UTIL', icon: CalendarIcon, color: 'bg-[#4f46e5]', component: BanglaCalendar },
+  { id: 'world-map', name: 'World Explorer', description: 'Interactive Map Intelligence', category: 'UTIL', icon: Globe, color: 'bg-blue-600', component: WorldMapTool },
+  { id: 'bd-map-3d', name: 'BD Map 3D', description: 'Bangladesh District Explorer', category: 'UTIL', icon: MapIcon, color: 'bg-emerald-600', component: Bangladesh3DMap },
 
   // Language
   { id: 'translator', name: 'Translate', description: 'AI Language expert', category: 'LANG', icon: Languages, color: 'bg-[#10b981]', component: Translator },

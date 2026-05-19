@@ -189,6 +189,8 @@ const TOOL_CONFIG = [
   { id: 'url-tool', name: 'URL Smith', description: 'Encode/Decode URLs', category: 'CODE', icon: Link2, color: 'bg-[#0ea5e9]', component: URLTool },
 ];
 
+import { FloatingContact } from './components/FloatingContact';
+
 export default function App() {
   const [activeTool, setActiveTool] = useState<string | null>(null);
   const [activeNav, setActiveNav] = useState('tools');
@@ -531,6 +533,7 @@ export default function App() {
           ))}
         </div>
       </nav>
+      <FloatingContact />
     </div>
   );
 }

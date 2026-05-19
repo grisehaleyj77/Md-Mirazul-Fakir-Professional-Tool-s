@@ -12,7 +12,9 @@ import {
   Award,
   Clock,
   Briefcase,
-  Zap
+  Zap,
+  Phone,
+  MessageSquare
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -31,6 +33,7 @@ export const Profile = ({ userStatus, onUpdateName }: any) => {
     { id: 'security', title: 'Security & Privacy', icon: Shield, subtitle: 'Password, bio-metrics and more', color: 'bg-indigo-50 text-indigo-600' },
     { id: 'subscription', title: 'Subscription Plan', icon: CreditCard, subtitle: 'Manage your pro features', color: 'bg-emerald-50 text-emerald-600' },
     { id: 'settings', title: 'App Settings', icon: Settings, subtitle: 'Theme, language and notifications', color: 'bg-slate-50 text-slate-600' },
+    { id: 'contact', title: 'Contact Support', icon: Phone, subtitle: 'Live call & WhatsApp support', color: 'bg-blue-50 text-blue-600' },
     { id: 'help', title: 'Help & FAQ', icon: HelpCircle, subtitle: 'Need assistance? View our guides', color: 'bg-amber-50 text-amber-600' },
   ];
 
@@ -53,28 +56,71 @@ export const Profile = ({ userStatus, onUpdateName }: any) => {
               {activeItem && <activeItem.icon className="w-8 h-8" />}
            </div>
            
-           {activeSubView === 'personal' ? (
-             <div className="space-y-4">
-               <div className="space-y-2">
-                 <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Full Name</label>
-                 <input 
-                  type="text" 
-                  value={tempName} 
-                  onChange={(e) => setTempName(e.target.value)}
-                  className="w-full h-14 bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-2xl px-4 font-bold outline-none focus:ring-2 ring-blue-500/20"
-                 />
+            {activeSubView === 'personal' ? (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Full Name</label>
+                  <input 
+                   type="text" 
+                   value={tempName} 
+                   onChange={(e) => setTempName(e.target.value)}
+                   className="w-full h-14 bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-2xl px-4 font-bold outline-none focus:ring-2 ring-blue-500/20"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Email Address</label>
+                  <input 
+                   type="email" 
+                   disabled
+                   value="user@example.com" 
+                   className="w-full h-14 bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-2xl px-4 font-bold opacity-50 cursor-not-allowed"
+                  />
+                </div>
+              </div>
+            ) : activeSubView === 'contact' ? (
+               <div className="space-y-6">
+                  <div className="text-center space-y-2">
+                     <h3 className="font-black text-lg">Direct Support</h3>
+                     <p className="text-xs text-slate-400 font-bold">Get in touch with Md Mirazul Fakir for instant help.</p>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-4">
+                     <a 
+                      href="tel:+8801648506538"
+                      className="flex items-center justify-between p-4 bg-blue-50 dark:bg-blue-500/10 border border-blue-100 dark:border-blue-500/20 rounded-2xl hover:scale-[1.02] transition-transform"
+                     >
+                        <div className="flex items-center gap-3">
+                           <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white">
+                              <Phone size={18} />
+                           </div>
+                           <div className="text-left">
+                              <p className="text-xs font-black">Voice Call</p>
+                              <p className="text-[10px] text-blue-600 font-bold">+8801648506538</p>
+                           </div>
+                        </div>
+                        <ChevronRight size={16} className="text-blue-400" />
+                     </a>
+
+                     <a 
+                      href="https://wa.me/8801648506538"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-between p-4 bg-green-50 dark:bg-green-500/10 border border-green-100 dark:border-green-500/20 rounded-2xl hover:scale-[1.02] transition-transform"
+                     >
+                        <div className="flex items-center gap-3">
+                           <div className="w-10 h-10 bg-green-500 rounded-xl flex items-center justify-center text-white">
+                              <MessageSquare size={18} />
+                           </div>
+                           <div className="text-left">
+                              <p className="text-xs font-black">WhatsApp Chat</p>
+                              <p className="text-[10px] text-green-600 font-bold">Instant Messaging</p>
+                           </div>
+                        </div>
+                        <ChevronRight size={16} className="text-green-400" />
+                     </a>
+                  </div>
                </div>
-               <div className="space-y-2">
-                 <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Email Address</label>
-                 <input 
-                  type="email" 
-                  disabled
-                  value="user@example.com" 
-                  className="w-full h-14 bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-2xl px-4 font-bold opacity-50 cursor-not-allowed"
-                 />
-               </div>
-             </div>
-           ) : (
+            ) : (
              <div className="text-center space-y-4">
                <h3 className="font-black">Configure {activeItem?.title}</h3>
                <p className="text-xs text-slate-400 font-bold max-w-[200px] mx-auto">This feature is currently being optimized for your account. Changes will sync automatically.</p>

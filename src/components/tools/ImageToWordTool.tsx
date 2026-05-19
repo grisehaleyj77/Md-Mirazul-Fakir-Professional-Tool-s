@@ -21,8 +21,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { Document, Packer, Paragraph, TextRun, HeadingLevel, ImageRun } from 'docx';
 import { saveAs } from 'file-saver';
-import { GoogleGenAI } from "@google/genai";
-import { GEMINI_API_KEY } from '../../lib/gemini';
+import { GEMINI_API_KEY, ai } from '../../lib/gemini';
 
 interface ImageData {
   id: string;
@@ -80,10 +79,6 @@ export const ImageToWordTool = () => {
     setImages(prev => prev.map(i => i.id === imgId ? { ...i, isProcessing: true } : i));
 
     try {
-      const genAI = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
-      // Use flash for better speed
-      const model = 'gemini-3-flash-preview';
-      
       const base64Data = await getBase64(img.file);
       const imagePart = {
         inlineData: {
@@ -92,8 +87,8 @@ export const ImageToWordTool = () => {
         }
       };
 
-      const result = await genAI.models.generateContent({
-        model: model,
+      const result = await ai.models.generateContent({
+        model: "gemini-3-flash-preview",
         contents: {
           parts: [
             { text: "Extract all text from this image exactly as it appears. Maintain the formatting, lists, and structure as much as possible. Do not add any conversational text. Only return the extracted content." },
@@ -106,14 +101,15 @@ export const ImageToWordTool = () => {
       setImages(prev => prev.map(i => i.id === imgId ? { ...i, extractedText: text, isProcessing: false } : i));
     } catch (error) {
       console.error('Extraction failed:', error);
-      setImages(prev => prev.map(i => i.id === imgId ? { ...i, isProcessing: false, extractedText: 'Error extracting text.' } : i));
+      setImages(prev => prev.map(i => i.id === imgId ? { ...i, isProcessing: false, extractedText: 'Error extracting text. AI limit reached or invalid image.' } : i));
     }
   };
 
   const extractAll = async () => {
-    const toProcess = images.filter(img => !img.extractedText && !img.isProcessing);
-    for (const img of toProcess) {
-      await extractTextForImage(img.id);
+    for (const img of images) {
+      if (!img.extractedText && !img.isProcessing) {
+        await extractTextForImage(img.id);
+      }
     }
   };
 
@@ -122,47 +118,82 @@ export const ImageToWordTool = () => {
     setIsGenerating(true);
 
     try {
-      const sections = [];
+      const children: any[] = [];
       
       for (let i = 0; i < images.length; i++) {
         const img = images[i];
-        const children: any[] = [];
 
-        // Heading for each image/page
+        // Insert the actual Image with aspect ratio preservation
+        const arrayBuffer = await img.file.arrayBuffer();
+        
+        // Use a simple trick to get image dimensions
+        const imgObj = new Image();
+        imgObj.src = img.preview;
+        await new Promise((resolve) => {
+          imgObj.onload = resolve;
+        });
+
+        const maxWidth = 550; // Standard A4 width roughly
+        const maxHeight = 750;
+        let width = imgObj.width;
+        let height = imgObj.height;
+
+        if (width > maxWidth) {
+          height = (maxWidth / width) * height;
+          width = maxWidth;
+        }
+        if (height > maxHeight) {
+          width = (maxHeight / height) * width;
+          height = maxHeight;
+        }
+
         children.push(new Paragraph({
-          text: `Page ${i + 1}`,
-          heading: HeadingLevel.HEADING_2,
-          spacing: { after: 200 }
+          children: [
+            new ImageRun({
+              data: arrayBuffer,
+              transformation: {
+                width,
+                height,
+              },
+            } as any),
+          ],
+          alignment: "center" as any,
+          spacing: { after: 300, before: 300 }
         }));
 
-        // The text content
+        // The text content if extracted
         if (img.extractedText) {
           const lines = img.extractedText.split('\n');
           lines.forEach(line => {
-            children.push(new Paragraph({
-              children: [new TextRun(line)],
-              spacing: { after: 120 }
-            }));
+            if (line.trim()) {
+              children.push(new Paragraph({
+                children: [new TextRun({
+                  text: line,
+                  size: 22
+                })],
+                spacing: { after: 120 }
+              }));
+            }
           });
-        } else {
+        }
+        
+        // Add page break if not last
+        if (i < images.length - 1) {
           children.push(new Paragraph({
-            children: [new TextRun({ text: "[No text extracted for this image]", italics: true })],
-            spacing: { after: 200 }
+            children: [new TextRun({ text: "", break: 1 })]
           }));
         }
-
-        sections.push({
-          properties: {},
-          children: children
-        });
       }
 
       const doc = new Document({
-        sections: sections
+        sections: [{
+          properties: {},
+          children: children
+        }]
       });
 
       const blob = await Packer.toBlob(doc);
-      saveAs(blob, `Picture_to_Word_${Date.now()}.docx`);
+      saveAs(blob, `Image_to_Word_${Date.now()}.docx`);
       setIsSuccess(true);
       setTimeout(() => setIsSuccess(false), 3000);
     } catch (err) {

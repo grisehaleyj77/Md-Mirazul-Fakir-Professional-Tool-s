@@ -108,9 +108,9 @@ export const VideoToAudio = () => {
                  <div className="w-12 h-12 bg-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-purple-500/30 rotate-3">
                     <Music className="w-6 h-6" />
                  </div>
-                 <h2 className="text-4xl font-black italic tracking-tighter uppercase">Audio <span className="text-purple-400">Extractor</span></h2>
+                 <h2 className="text-4xl font-black italic tracking-tighter uppercase">MP4 <span className="text-purple-400">to MP3</span></h2>
               </div>
-              <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 pl-1">Professional Video to High-Fidelity Audio Converter</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 pl-1">Professional Video to High-Fidelity Audio extractions</p>
            </div>
            
            {!ffmpegLoaded && (

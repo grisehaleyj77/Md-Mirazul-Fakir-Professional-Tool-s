@@ -3,7 +3,6 @@ import path from "path";
 import cors from "cors";
 import { YoutubeTranscript } from 'youtube-transcript';
 import { GoogleGenAI, Type } from "@google/genai";
-import { createServer as createViteServer } from "vite";
 
 const app = express();
 const PORT = 3000;
@@ -325,6 +324,7 @@ app.use(express.json());
 async function startServer() {
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
+    const { createServer: createViteServer } = await import("vite");
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",

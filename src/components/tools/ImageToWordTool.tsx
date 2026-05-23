@@ -13,15 +13,16 @@ import {
   Loader2,
   CheckCircle2,
   ArrowRight,
-  Sparkles,
   RefreshCw,
   Copy,
-  Check
+  Check,
+  Type,
+  Maximize2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Document, Packer, Paragraph, TextRun, HeadingLevel, ImageRun } from 'docx';
+import { Document, Packer, Paragraph, TextRun, HeadingLevel, ImageRun, AlignmentType } from 'docx';
 import { saveAs } from 'file-saver';
-import { GEMINI_API_KEY, ai } from '../../lib/gemini';
+import { createWorker } from 'tesseract.js';
 
 interface ImageData {
   id: string;
@@ -36,72 +37,79 @@ export const ImageToWordTool = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [filename, setFilename] = useState("my_scanned_documents");
+  const [embedImages, setEmbedImages] = useState(true);
+  const [fontSize, setFontSize] = useState<10 | 11 | 12 | 14>(11);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    if (files.length === 0) return;
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
 
-    const newImages: ImageData[] = files.map(file => ({
+  const handleDragLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+    if (e.dataTransfer.files) {
+      addFiles(Array.from(e.dataTransfer.files));
+    }
+  };
+
+  const addFiles = (files: File[]) => {
+    const validImages = files.filter(f => f.type.startsWith('image/'));
+    const newImages: ImageData[] = validImages.map(file => ({
       id: Math.random().toString(36).substr(2, 9),
       file,
-      preview: URL.createObjectURL(file),
-      extractedText: '',
-      isProcessing: false
+      preview: URL.createObjectURL(file)
     }));
-
     setImages(prev => [...prev, ...newImages]);
-    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const handleFileSelection = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      addFiles(Array.from(e.target.files));
+    }
   };
 
   const removeImage = (id: string) => {
     setImages(prev => {
-      const filtered = prev.filter(img => img.id !== id);
-      const removed = prev.find(img => img.id === id);
-      if (removed) URL.revokeObjectURL(removed.preview);
-      return filtered;
+      const target = prev.find(i => i.id === id);
+      if (target) URL.revokeObjectURL(target.preview);
+      return prev.filter(i => i.id !== id);
     });
   };
 
-  const moveImage = (index: number, direction: 'up' | 'down') => {
-    const newImages = [...images];
-    const targetIndex = direction === 'up' ? index - 1 : index + 1;
-    if (targetIndex < 0 || targetIndex >= newImages.length) return;
+  const reorderImage = (index: number, direction: 'up' | 'down') => {
+    if (direction === 'up' && index === 0) return;
+    if (direction === 'down' && index === images.length - 1) return;
 
-    [newImages[index], newImages[targetIndex]] = [newImages[targetIndex], newImages[index]];
+    const newImages = [...images];
+    const targetIdx = direction === 'up' ? index - 1 : index + 1;
+    const temp = newImages[index];
+    newImages[index] = newImages[targetIdx];
+    newImages[targetIdx] = temp;
     setImages(newImages);
   };
 
   const extractTextForImage = async (imgId: string) => {
     const img = images.find(i => i.id === imgId);
-    if (!img || !GEMINI_API_KEY) return;
+    if (!img) return;
 
     setImages(prev => prev.map(i => i.id === imgId ? { ...i, isProcessing: true } : i));
 
     try {
-      const base64Data = await getBase64(img.file);
-      const imagePart = {
-        inlineData: {
-          data: base64Data.split(',')[1],
-          mimeType: img.file.type
-        }
-      };
-
-      const result = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: {
-          parts: [
-            { text: "Extract all text from this image exactly as it appears. Maintain the formatting, lists, and structure as much as possible. Do not add any conversational text. Only return the extracted content." },
-            imagePart
-          ]
-        }
-      });
-
-      const text = result.text || "";
-      setImages(prev => prev.map(i => i.id === imgId ? { ...i, extractedText: text, isProcessing: false } : i));
+      const worker = await createWorker('eng+ben', 1);
+      const { data: { text } } = await worker.recognize(img.file);
+      setImages(prev => prev.map(i => i.id === imgId ? { ...i, extractedText: text || "No text found.", isProcessing: false } : i));
+      await worker.terminate();
     } catch (error) {
       console.error('Extraction failed:', error);
-      setImages(prev => prev.map(i => i.id === imgId ? { ...i, isProcessing: false, extractedText: 'Error extracting text. AI limit reached or invalid image.' } : i));
+      setImages(prev => prev.map(i => i.id === imgId ? { ...i, isProcessing: false, extractedText: 'Error extracting text offline.' } : i));
     }
   };
 
@@ -120,67 +128,82 @@ export const ImageToWordTool = () => {
     try {
       const children: any[] = [];
       
-      for (let i = 0; i < images.length; i++) {
-        const img = images[i];
+      // Document Title/Header
+      children.push(new Paragraph({
+        children: [
+          new TextRun({
+            text: filename.replace(/_/g, ' ').toUpperCase(),
+            bold: true,
+            size: fontSize * 2 + 8,
+          })
+        ],
+        heading: HeadingLevel.HEADING_1,
+        alignment: AlignmentType.CENTER,
+        spacing: { after: 400 }
+      }));
 
-        // Insert the actual Image with aspect ratio preservation
-        const arrayBuffer = await img.file.arrayBuffer();
+      for (let index = 0; index < images.length; index++) {
+        const item = images[index];
         
-        // Use a simple trick to get image dimensions
-        const imgObj = new Image();
-        imgObj.src = img.preview;
-        await new Promise((resolve) => {
-          imgObj.onload = resolve;
-        });
-
-        const maxWidth = 550; // Standard A4 width roughly
-        const maxHeight = 750;
-        let width = imgObj.width;
-        let height = imgObj.height;
-
-        if (width > maxWidth) {
-          height = (maxWidth / width) * height;
-          width = maxWidth;
-        }
-        if (height > maxHeight) {
-          width = (maxHeight / height) * width;
-          height = maxHeight;
-        }
-
+        // Page sub-heading
         children.push(new Paragraph({
           children: [
-            new ImageRun({
-              data: arrayBuffer,
-              transformation: {
-                width,
-                height,
-              },
-            } as any),
+            new TextRun({
+              text: `Page ${index + 1}: Scanned Image Layout`,
+              bold: true,
+              size: fontSize * 2,
+            })
           ],
-          alignment: "center" as any,
-          spacing: { after: 300, before: 300 }
+          heading: HeadingLevel.HEADING_2,
+          spacing: { before: 400, after: 200 }
         }));
 
-        // The text content if extracted
-        if (img.extractedText) {
-          const lines = img.extractedText.split('\n');
-          lines.forEach(line => {
-            if (line.trim()) {
-              children.push(new Paragraph({
-                children: [new TextRun({
-                  text: line,
-                  size: 22
-                })],
-                spacing: { after: 120 }
-              }));
-            }
-          });
-        }
-        
-        // Add page break if not last
-        if (i < images.length - 1) {
+        // Embed Image
+        if (embedImages) {
+          const arrayBuffer = await item.file.arrayBuffer();
           children.push(new Paragraph({
-            children: [new TextRun({ text: "", break: 1 })]
+            children: [
+              new ImageRun({
+                data: arrayBuffer,
+                transformation: {
+                  width: 500,
+                  height: 380,
+                },
+              } as any),
+            ],
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 300 }
+          }));
+        }
+
+        // Add Text Run
+        const textToPut = item.extractedText || "[No transcribed text for this page]";
+        const lines = textToPut.split('\n');
+        lines.forEach(line => {
+          if (line.trim()) {
+            children.push(new Paragraph({
+              children: [
+                new TextRun({
+                  text: line,
+                  size: fontSize * 2,
+                })
+              ],
+              spacing: { after: 120 }
+            }));
+          }
+        });
+
+        // Add a page divider unless it is the last item
+        if (index < images.length - 1) {
+          children.push(new Paragraph({
+            children: [
+              new TextRun({
+                text: "_________________________________________________________________________________",
+                color: "E2E8F0"
+              })
+            ],
+            alignment: AlignmentType.CENTER,
+            spacing: { before: 300, after: 300 }
           }));
         }
       }
@@ -188,264 +211,247 @@ export const ImageToWordTool = () => {
       const doc = new Document({
         sections: [{
           properties: {},
-          children: children
+          children,
         }]
       });
 
       const blob = await Packer.toBlob(doc);
-      saveAs(blob, `Image_to_Word_${Date.now()}.docx`);
+      saveAs(blob, `${filename || 'my_scanned_document'}.docx`);
       setIsSuccess(true);
       setTimeout(() => setIsSuccess(false), 3000);
     } catch (err) {
-      console.error('Word Generation Error:', err);
+      console.error("Failed to compile document:", err);
     } finally {
       setIsGenerating(false);
     }
   };
 
-  const getBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = error => reject(error);
-    });
-  };
-
-  const copyText = (text: string, id: string) => {
-    navigator.clipboard.writeText(text);
+  const copyText = (val: string, id: string) => {
+    navigator.clipboard.writeText(val);
     setCopied(id);
     setTimeout(() => setCopied(null), 2000);
   };
 
   return (
-    <div className="min-h-screen bg-[#050505] text-slate-200 p-6 md:p-12 font-sans selection:bg-blue-500/30">
-      <div className="max-w-5xl mx-auto space-y-12">
-        
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
-          <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-blue-600/10 rounded-xl flex items-center justify-center border border-blue-500/20">
-                <FileText className="w-6 h-6 text-blue-500" />
-              </div>
-              <h2 className="text-xs font-black uppercase tracking-[0.4em] text-slate-500">Intelligent Doc Suite</h2>
-            </div>
-            <h1 className="text-5xl md:text-6xl font-black italic uppercase tracking-tighter leading-none">
-              Picture <span className="text-blue-500">to Word</span>
-            </h1>
+    <div className="max-w-6xl mx-auto space-y-8 pb-32" id="img-to-word-suite-root">
+      
+      {/* Brand Header */}
+      <div className="bg-white dark:bg-slate-900 rounded-[32px] p-8 border border-slate-100 dark:border-slate-800 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="flex items-center gap-4">
+          <div className="p-3 bg-indigo-600 rounded-2xl text-white shadow-lg shadow-indigo-200">
+            <FilePlus size={24} />
           </div>
-          
-          {images.length > 0 && (
-            <div className="flex items-center gap-4 bg-[#0a0a0a] p-3 rounded-2xl border border-white/5">
-              <div className="px-4 py-2 bg-blue-600/10 border border-blue-500/20 rounded-xl">
-                 <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest">{images.length} FILES QUEUED</span>
-              </div>
-            </div>
-          )}
+          <div>
+            <h2 className="text-2xl font-black text-slate-800 dark:text-white tracking-tight">BATCH IMAGE TO <span className="text-indigo-600">WORD</span></h2>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1">Multi-Page Offline OCR DOCX Compiler</p>
+          </div>
         </div>
+      </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-          
-          {/* Main Workspace */}
-          <div className="lg:col-span-2 space-y-8">
-            
-            {/* Upload Area */}
-            <div 
-              onClick={() => { if(images.length === 0) fileInputRef.current?.click(); }}
-              className={`relative group ${images.length === 0 ? 'cursor-pointer h-64 border-blue-500/20' : 'p-0 border-transparent'} bg-[#0a0a0a] border-2 border-dashed rounded-[40px] transition-all overflow-hidden`}
-            >
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        {/* Left Side: Configuration & Pipeline list */}
+        <div className="lg:col-span-2 space-y-6">
+           <div 
+             onDragOver={handleDragOver}
+             onDragLeave={handleDragLeave}
+             onDrop={handleDrop}
+             onClick={() => fileInputRef.current?.click()}
+             className={`p-16 border-2 border-dashed rounded-[40px] text-center cursor-pointer transition-all ${isDragging ? 'border-indigo-500 bg-indigo-500/5' : 'border-slate-200 hover:border-indigo-400 bg-white dark:bg-slate-900'}`}
+           >
+              <FileImage size={48} className="text-indigo-500 mx-auto mb-4" />
+              <h3 className="text-lg font-black text-slate-800 dark:text-white">Drag and drop scanned images</h3>
+              <p className="text-xs text-slate-400 font-semibold mt-1 uppercase">Supports multiple files (PNG, JPG, WEBP)</p>
               <input 
                 type="file" 
-                ref={fileInputRef}
-                onChange={handleFileChange}
+                ref={fileInputRef} 
+                onChange={handleFileSelection} 
                 multiple 
                 accept="image/*" 
                 className="hidden" 
               />
-              
+           </div>
+
+           {/* Batch Files Queue */}
+           <div className="space-y-4">
+              <div className="flex justify-between items-center px-1">
+                 <h3 className="text-xs font-black uppercase tracking-widest text-slate-400">BATCH QUEUE ({images.length})</h3>
+                 {images.length > 0 && (
+                   <button 
+                     onClick={extractAll}
+                     className="px-4 py-2 bg-indigo-50 dark:bg-indigo-950/20 text-indigo-600 rounded-lg text-xs font-bold hover:bg-indigo-100 transition-all cursor-pointer"
+                   >
+                     Transcribe All Queue Items
+                   </button>
+                 )}
+              </div>
+
               {images.length === 0 ? (
-                <div className="text-center space-y-4 relative z-10 w-full flex flex-col items-center justify-center h-full">
-                  <div className="w-20 h-20 bg-blue-600/10 rounded-3xl flex items-center justify-center mx-auto group-hover:scale-110 transition-transform">
-                    <FilePlus className="w-10 h-10 text-blue-500" />
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm font-black uppercase tracking-widest text-slate-300">Import Visual Data</p>
-                    <p className="text-[10px] font-bold text-slate-600 uppercase tracking-[0.2em]">JPG, PNG, WEBP • AI OCR ENABLED</p>
-                  </div>
+                <div className="py-12 bg-slate-50 dark:bg-slate-900/40 rounded-[32px] border border-dashed text-center text-xs font-semibold text-slate-400">
+                   No scan files added. Add files above to build your document queue.
                 </div>
               ) : (
-                <div className="space-y-6">
-                   {images.map((img, index) => (
-                     <motion.div 
-                        key={img.id}
-                        layout
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="bg-[#0c0c0c] border border-white/5 rounded-[32px] overflow-hidden flex flex-col md:flex-row"
+                <div className="space-y-3">
+                   {images.map((item, index) => (
+                     <div 
+                       key={item.id}
+                       className="p-5 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl flex flex-col md:flex-row gap-5 items-stretch md:items-center justify-between"
                      >
-                        {/* Image Preview Block */}
-                        <div className="w-full md:w-64 h-64 md:h-auto relative bg-black shrink-0">
-                           <img src={img.preview} alt="preview" className="w-full h-full object-contain opacity-80" />
-                           <div className="absolute top-4 left-4">
-                              <span className="text-[10px] font-black text-white px-3 py-1.5 bg-blue-600 rounded-lg shadow-lg">#{index + 1}</span>
-                           </div>
-                           <div className="absolute bottom-4 left-4 right-4 flex justify-center gap-2">
-                              <button 
-                                onClick={(e) => { e.stopPropagation(); moveImage(index, 'up'); }}
-                                disabled={index === 0}
-                                className="p-2 bg-white/10 text-white rounded-lg hover:bg-white/20 disabled:opacity-30 backdrop-blur-md"
-                              >
-                                 <MoveUp className="w-4 h-4" />
-                              </button>
-                              <button 
-                                onClick={(e) => { e.stopPropagation(); moveImage(index, 'down'); }}
-                                disabled={index === images.length - 1}
-                                className="p-2 bg-white/10 text-white rounded-lg hover:bg-white/20 disabled:opacity-30 backdrop-blur-md"
-                              >
-                                 <MoveDown className="w-4 h-4" />
-                              </button>
-                              <button 
-                                onClick={(e) => { e.stopPropagation(); removeImage(img.id); }}
-                                className="p-2 bg-rose-500/20 text-rose-500 rounded-lg hover:bg-rose-500 hover:text-white transition-all backdrop-blur-md"
-                               >
-                                  <Trash2 className="w-4 h-4" />
-                               </button>
-                           </div>
-                        </div>
-
-                        {/* Content Block */}
-                        <div className="flex-1 p-6 flex flex-col">
-                           <div className="flex items-center justify-between mb-4">
-                              <div className="flex items-center gap-2">
-                                 <Sparkles className="w-4 h-4 text-blue-400" />
-                                 <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">AI Transcription</span>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                 {img.extractedText && (
-                                   <button 
-                                    onClick={() => copyText(img.extractedText!, img.id)}
-                                    className="p-2 hover:bg-white/5 rounded-lg text-slate-500 transition-colors"
-                                   >
-                                      {copied === img.id ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
-                                   </button>
-                                 )}
+                        <div className="flex gap-4 items-center flex-1">
+                           <img src={item.preview} className="w-20 h-20 object-cover rounded-xl border" alt="preview" />
+                           <div className="space-y-1 select-none flex-1">
+                              <h4 className="text-xs font-black text-slate-800 dark:text-white">Page {index + 1}: {item.file.name}</h4>
+                              <p className="text-[10px] text-slate-400 font-bold uppercase">{(item.file.size / 1024).toFixed(1)} KB</p>
+                              
+                              <div className="flex items-center gap-1.5 pt-1">
                                  <button 
-                                  onClick={() => extractTextForImage(img.id)}
-                                  disabled={img.isProcessing}
-                                  className="flex items-center gap-2 px-3 py-1.5 bg-blue-600/10 text-blue-400 rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all disabled:opacity-50"
+                                   onClick={() => reorderImage(index, 'up')}
+                                   className="p-1.5 bg-slate-50 dark:bg-slate-800 text-slate-400 hover:text-indigo-600 rounded-lg"
                                  >
-                                    {img.isProcessing ? <RefreshCw className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
-                                    {img.extractedText ? 'Re-scan' : 'Scan Image'}
+                                    <MoveUp size={12} />
+                                 </button>
+                                 <button 
+                                   onClick={() => reorderImage(index, 'down')}
+                                   className="p-1.5 bg-slate-50 dark:bg-slate-800 text-slate-400 hover:text-indigo-600 rounded-lg"
+                                 >
+                                    <MoveDown size={12} />
                                  </button>
                               </div>
                            </div>
+                        </div>
 
-                           <div className="flex-1 bg-black/50 rounded-2xl p-4 border border-white/5 min-h-[120px] max-h-[250px] overflow-y-auto">
-                              {img.isProcessing ? (
-                                <div className="h-full flex flex-col items-center justify-center gap-3 py-8">
-                                   <Loader2 className="w-6 h-6 text-blue-500 animate-spin" />
-                                   <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">AI is reading the visual data...</p>
+                        {/* OCR text display box */}
+                        <div className="flex flex-col gap-2 flex-1">
+                           <div className="bg-slate-50 dark:bg-slate-850 p-4 rounded-xl min-h-[90px] border">
+                              {item.isProcessing ? (
+                                <div className="text-[10px] text-indigo-500 font-black flex items-center gap-2 animate-pulse uppercase">
+                                   <RefreshCw className="animate-spin w-3.5 h-3.5" />
+                                   Transcribing Layout...
                                 </div>
-                              ) : img.extractedText ? (
-                                <p className="text-xs text-slate-400 leading-relaxed font-mono whitespace-pre-wrap">{img.extractedText}</p>
+                              ) : item.extractedText ? (
+                                <textarea 
+                                  value={item.extractedText}
+                                  onChange={(e) => {
+                                    const updated = e.target.value;
+                                    setImages(prev => prev.map(im => im.id === item.id ? { ...im, extractedText: updated } : im));
+                                  }}
+                                  className="w-full h-16 bg-transparent border-none outline-none resize-none text-[11px] font-medium leading-relaxed dark:text-slate-300"
+                                />
                               ) : (
-                                <div className="h-full flex flex-col items-center justify-center gap-2 opacity-20">
-                                   <FileText className="w-8 h-8" />
-                                   <p className="text-[9px] font-black uppercase tracking-widest">No data extracted yet</p>
+                                <div className="text-[10px] text-slate-400 font-bold italic">
+                                   Text remains untranscribed. Click transcribe to extract.
                                 </div>
                               )}
                            </div>
                         </div>
-                     </motion.div>
-                   ))}
-                   
-                   <button 
-                    onClick={() => fileInputRef.current?.click()}
-                    className="w-full py-8 border-2 border-dashed border-white/5 rounded-3xl flex items-center justify-center gap-3 hover:bg-white/5 hover:border-blue-500/20 transition-all group"
-                   >
-                      <Plus className="w-6 h-6 text-slate-600 group-hover:text-blue-500 transition-colors" />
-                      <span className="text-xs font-black uppercase tracking-widest text-slate-600 group-hover:text-slate-300">Append more images</span>
-                   </button>
-                </div>
-              )}
-            </div>
-          </div>
 
-          {/* Controls */}
-          <div className="space-y-8">
-            <div className="bg-[#0a0a0a] p-8 rounded-[48px] border border-white/5 space-y-8 sticky top-8">
-               <div className="flex items-center gap-3 border-b border-white/5 pb-6">
-                  <Settings className="w-5 h-5 text-blue-500" />
-                  <h3 className="text-lg font-black italic uppercase tracking-tighter">Export <span className="text-blue-500">Batch</span></h3>
-               </div>
-
-               <div className="space-y-4">
-                  <button 
-                    onClick={extractAll}
-                    disabled={images.length === 0 || images.every(i => i.extractedText) || images.some(i => i.isProcessing)}
-                    className="w-full py-4 bg-white/5 text-slate-400 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 hover:text-white transition-all disabled:opacity-30 flex items-center justify-center gap-2 border border-white/10"
-                  >
-                     <Sparkles className="w-4 h-4 text-blue-500" />
-                     Scan All Images
-                  </button>
-               </div>
-
-               <div className="space-y-4">
-                  <div className="bg-blue-600/5 rounded-3xl p-6 border border-blue-500/10 space-y-4">
-                     <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 text-center">Output Format</p>
-                     <div className="flex items-center justify-center gap-4">
-                        <div className="flex flex-col items-center gap-2">
-                           <div className="w-14 h-14 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-blue-600/30">
-                              <FileText className="w-7 h-7" />
-                           </div>
-                           <span className="text-[9px] font-black text-blue-500">DOCX</span>
+                        <div className="flex md:flex-col items-center justify-end gap-2 shrink-0 border-t md:border-t-0 pt-3 md:pt-0">
+                           {!item.extractedText && !item.isProcessing && (
+                             <button
+                               onClick={() => extractTextForImage(item.id)}
+                               className="px-4 py-2 bg-slate-900 border text-white rounded-lg text-[10px] font-black uppercase tracking-wider cursor-pointer"
+                             >
+                                Transcribe Page
+                             </button>
+                           )}
+                           {item.extractedText && (
+                             <button
+                               onClick={() => copyText(item.extractedText!, item.id)}
+                               className="p-2 bg-slate-50 text-slate-500 rounded-lg hover:text-indigo-600 transition-colors cursor-pointer border"
+                             >
+                               {copied === item.id ? <Check size={14} className="text-green-500" /> : <Copy size={14} />}
+                             </button>
+                           )}
+                           <button 
+                             onClick={() => removeImage(item.id)}
+                             className="p-2 text-slate-400 hover:text-red-500 rounded-lg hover:bg-rose-50 cursor-pointer border"
+                           >
+                              <X size={14} />
+                           </button>
                         </div>
                      </div>
-                  </div>
-               </div>
-
-               <button 
-                onClick={generateWordDoc}
-                disabled={images.length === 0 || isGenerating}
-                className="w-full h-20 bg-blue-600 hover:bg-blue-500 text-white rounded-[32px] font-black text-xs uppercase tracking-[0.4em] transition-all flex items-center justify-center gap-4 shadow-2xl shadow-blue-600/20 disabled:opacity-30 disabled:grayscale group active:scale-95"
-               >
-                  {isGenerating ? (
-                    <Loader2 className="w-6 h-6 animate-spin" />
-                  ) : (
-                    <>
-                       Save as Word
-                       <Download className="w-5 h-5 group-hover:translate-y-1 transition-transform" />
-                    </>
-                  )}
-               </button>
-
-               <AnimatePresence>
-                 {isSuccess && (
-                   <motion.div 
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0 }}
-                    className="p-4 bg-green-500/10 border border-green-500/20 rounded-2xl flex items-center gap-3 text-green-500"
-                   >
-                      <CheckCircle2 className="w-5 h-5" />
-                      <span className="text-[10px] font-black uppercase tracking-widest">Document compiled successfully</span>
-                   </motion.div>
-                 )}
-               </AnimatePresence>
-
-               <div className="pt-6 border-t border-white/5">
-                  <div className="bg-white/5 p-4 rounded-2xl space-y-2 text-center">
-                     <p className="text-[9px] font-black uppercase text-slate-500 tracking-[0.2em] italic underline decoration-blue-500/50">Developer Protocol</p>
-                     <p className="text-[9px] font-bold text-slate-600 uppercase leading-relaxed font-mono">POWERED BY GEMINI 3 FLASH FOR HIGH-PRECISION OCR & STRUCTURAL MAPPING.</p>
-                  </div>
-               </div>
-            </div>
-          </div>
+                   ))}
+                </div>
+              )}
+           </div>
 
         </div>
 
+        {/* Right Side Settings & Main compile button */}
+        <div className="space-y-6">
+           <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[32px] p-6 shadow-sm space-y-6">
+              <div className="flex items-center gap-2">
+                 <Settings size={18} className="text-indigo-600" />
+                 <h3 className="text-xs font-black uppercase tracking-wider text-slate-800 dark:text-white">Document Compiler Specifications</h3>
+              </div>
+
+              <div className="space-y-4">
+                 <div className="space-y-2">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Doc File name</label>
+                    <input 
+                      type="text" 
+                      value={filename}
+                      onChange={(e) => setFilename(e.target.value)}
+                      placeholder="e.g. notes_draft"
+                      className="w-full bg-slate-50 dark:bg-slate-800 border p-3.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 focus:outline-none"
+                    />
+                 </div>
+
+                 <div className="space-y-2">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Base Font Size (pt)</label>
+                    <div className="grid grid-cols-4 gap-2">
+                       {([10, 11, 12, 14] as const).map((sz) => (
+                         <button
+                           key={sz}
+                           onClick={() => setFontSize(sz)}
+                           className={`py-2 rounded-lg text-xs font-black border-2 transition-all cursor-pointer ${fontSize === sz ? 'bg-indigo-50 border-indigo-500/20 text-indigo-605 font-black' : 'bg-transparent text-slate-500'}`}
+                         >
+                           {sz}pt
+                         </button>
+                       ))}
+                    </div>
+                 </div>
+
+                 <button
+                   onClick={() => setEmbedImages(!embedImages)}
+                   className={`flex items-center justify-between p-4 rounded-xl border-2 transition-all cursor-pointer w-full ${embedImages ? 'bg-indigo-50/50 dark:bg-indigo-950/20 border-indigo-100 dark:border-indigo-900 text-indigo-700' : 'bg-slate-50 dark:bg-slate-850 border-slate-100 dark:border-slate-755 text-slate-400'}`}
+                 >
+                    <span className="text-xs font-bold">Include original image layouts</span>
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${embedImages ? 'bg-indigo-600 border-indigo-600 text-white' : 'bg-white border-slate-200'}`}>
+                       {embedImages && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
+                    </div>
+                 </button>
+
+                 <div className="pt-2">
+                    <button 
+                      onClick={generateWordDoc}
+                      disabled={images.length === 0 || isGenerating}
+                      className="w-full h-16 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-xs font-black uppercase tracking-[0.15em] flex items-center justify-center gap-2 transition-all shadow-xl shadow-indigo-600/20 cursor-pointer disabled:opacity-50"
+                    >
+                      {isGenerating ? <Loader2 className="animate-spin" size={16} /> : <Download size={16} />}
+                      {isGenerating ? 'Compiling Word DocX...' : 'Compile Document Package'}
+                    </button>
+                 </div>
+              </div>
+           </div>
+
+           <AnimatePresence>
+             {isSuccess && (
+               <motion.div 
+                 initial={{ opacity: 0, scale: 0.95 }}
+                 animate={{ opacity: 1, scale: 1 }}
+                 exit={{ opacity: 0 }}
+                 className="p-4 bg-emerald-600 text-white rounded-2xl flex items-center gap-3 shadow-md"
+               >
+                  <CheckCircle2 size={16} />
+                  <span className="text-xs font-black uppercase tracking-wide">SUCCESS: DOCX generated successfully</span>
+               </motion.div>
+             )}
+           </AnimatePresence>
+        </div>
+
       </div>
+
     </div>
   );
 };

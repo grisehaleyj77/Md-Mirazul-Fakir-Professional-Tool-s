@@ -167,6 +167,162 @@ async function startServer() {
     }
   });
 
+  app.post("/api/rewrite", async (req, res) => {
+    const { text, tone, intensity, audience, excludeWords, mode } = req.body;
+    if (!text) {
+      return res.status(400).json({ error: "Text is required" });
+    }
+
+    try {
+      const audienceStr = audience ? `for ${audience} audience` : "";
+      const avoidStr = excludeWords ? `strictly avoiding the following words: ${excludeWords}` : "";
+      const toneModeStr = tone ? `rewritten in a ${tone} tone` : "rewritten";
+      const intensityStr = intensity ? `using ${intensity} level of rewriting intensity (where 'word' means local substitutions, 'sentence' means sentence structures rewritten, and 'full' means complete content reorganization)` : "";
+      const rewriteModeStr = mode && mode !== 'rewrite' ? `Applying action: ${mode} the text (e.g. summarize, expand, simplify, shorten)` : "";
+
+      const response = await ai.models.generateContent({
+        model: "gemini-3.5-flash",
+        contents: `Please rewrite, restructure, or format the following article/text:
+        
+        Text to process:
+        "${text}"
+        
+        Requirements:
+        1. It must be ${toneModeStr} ${audienceStr}.
+        2. ${intensityStr}
+        3. ${avoidStr}
+        4. ${rewriteModeStr}
+        
+        Provide the processed result along with analytical parameters as requested in the schema. Check grammar and polish style to be flawless.`,
+        config: {
+          systemInstruction: "You are a professional editor and copywriter. Analyze the original text and rebuild it of the highest-caliber according to instructions. Produce 2 alternative stylistic variations inside 'alternatives'. Provide accurate word count checks (under wordCount.before and wordCount.after). Return ONLY a JSON object matching the requested schema.",
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              original: { type: Type.STRING },
+              rewritten: { type: Type.STRING },
+              alternatives: {
+                type: Type.ARRAY,
+                items: {
+                  type: Type.OBJECT,
+                  properties: {
+                    style: { type: Type.STRING },
+                    text: { type: Type.STRING }
+                  }
+                }
+              },
+              readability: {
+                type: Type.OBJECT,
+                properties: {
+                  before: { type: Type.STRING },
+                  after: { type: Type.STRING }
+                }
+              },
+              wordCount: {
+                type: Type.OBJECT,
+                properties: {
+                  before: { type: Type.NUMBER },
+                  after: { type: Type.NUMBER }
+                }
+              },
+              uniquenessEstimation: { type: Type.NUMBER },
+              toneAnalysis: {
+                type: Type.ARRAY,
+                items: {
+                  type: Type.OBJECT,
+                  properties: {
+                    name: { type: Type.STRING },
+                    value: { type: Type.NUMBER }
+                  }
+                }
+              },
+              improvementsApplied: {
+                type: Type.ARRAY,
+                items: { type: Type.STRING }
+              }
+            },
+            required: ["original", "rewritten", "alternatives", "readability", "wordCount", "uniquenessEstimation", "toneAnalysis", "improvementsApplied"]
+          }
+        },
+      });
+
+      const data = JSON.parse(response.text || "{}");
+      res.json(data);
+    } catch (error: any) {
+      console.error('Article rewriter error:', error);
+      res.status(500).json({ error: "Rewriting analysis failed. Please try again later." });
+    }
+  });
+
+  app.post("/api/text-to-hashtags", async (req, res) => {
+    const { text, platform, count, style } = req.body;
+    if (!text) {
+      return res.status(400).json({ error: "Text is required" });
+    }
+
+    try {
+      const platformStr = platform || "Instagram";
+      const countNum = count || 30;
+      const formattingStyle = style || "CamelCase"; // lowercase, CamelCase, etc.
+
+      const response = await ai.models.generateContent({
+        model: "gemini-3.5-flash",
+        contents: `Process the following text to generate optimized social media hashtags.
+        
+        Text to convert:
+        "${text}"
+        
+        Requirements:
+        1. Tailored specifically for the ${platformStr} platform.
+        2. Deliver up to ${countNum} hashtags sorted into thematic categories.
+        3. Make sure all hashtags are styled with "${formattingStyle}" formatting (e.g. CamelCase like #SunsetBeach or lowercase like #sunsetbeach).
+        4. Exclude symbols, punctuation, and spaces from inside the tags. Make sure each starts with exactly one '#'.`,
+        config: {
+          systemInstruction: "You are an expert social media and SEO engine. Extract and generate contextual hashtags from text. Return a JSON structure representing categories: 'broad' (high-volume generic tags), 'core' (direct representations of keywords in the text), 'niche' (highly relevant specific search phrases), and 'trending' (high growth community terms). Also include a 'recommendedLayout' string showing a professional layout (text + spacer + hashtags block). Return ONLY a JSON object.",
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              broad: {
+                type: Type.ARRAY,
+                items: { type: Type.STRING }
+              },
+              core: {
+                type: Type.ARRAY,
+                items: { type: Type.STRING }
+              },
+              niche: {
+                type: Type.ARRAY,
+                items: { type: Type.STRING }
+              },
+              trending: {
+                type: Type.ARRAY,
+                items: { type: Type.STRING }
+              },
+              recommendedLayout: { type: Type.STRING },
+              metadata: {
+                type: Type.OBJECT,
+                properties: {
+                  primaryCategory: { type: Type.STRING },
+                  optimalCountWarning: { type: Type.STRING },
+                  sentimentTag: { type: Type.STRING }
+                }
+              }
+            },
+            required: ["broad", "core", "niche", "trending", "recommendedLayout"]
+          }
+        }
+      });
+
+      const data = JSON.parse(response.text || "{}");
+      res.json(data);
+    } catch (error: any) {
+      console.error('Text to Hashtags error:', error);
+      res.status(500).json({ error: "AI hashtag processing failed. Please try again." });
+    }
+  });
+
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({

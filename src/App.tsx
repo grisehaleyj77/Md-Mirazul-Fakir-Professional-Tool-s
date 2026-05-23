@@ -50,7 +50,21 @@ import {
   Barcode as BarcodeIcon,
   MessageSquare,
   RefreshCw,
-  SpellCheck
+  SpellCheck,
+  Code,
+  Sparkles,
+  AlignLeft,
+  Server,
+  FileEdit,
+  ArrowLeftRight,
+  Split,
+  Sliders,
+  UserCheck,
+  DollarSign,
+  Key,
+  Minimize,
+  Link,
+  Navigation
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -120,81 +134,235 @@ import { ScientificCalculator } from './components/tools/ScientificCalculator';
 import { WorldMapTool } from './components/tools/WorldMapTool';
 import { Bangladesh3DMap } from './components/tools/Bangladesh3DMap';
 import { GrammarChecker } from './components/tools/GrammarChecker';
+import { ArticleRewriter } from './components/tools/ArticleRewriter';
+import { BackwardsTextGenerator } from './components/tools/BackwardsTextGenerator';
+import { TextToHashtagsConverter } from './components/tools/TextToHashtagsConverter';
+import { TextCompare } from './components/tools/TextCompare';
+import { TextToSlugConverter } from './components/tools/TextToSlugConverter';
+
+// Custom Text Tools imports
+import { 
+  LoremIpsumGenerator, 
+  CaseConverter, 
+  RemoveLineBreaks, 
+  TextRepeater, 
+  TextSorter, 
+  CommaSeparator, 
+  NumberToWordConverter, 
+  WordToNumberConverter, 
+  TextToTagsConverter 
+} from './components/tools/CustomTextTools';
+
+// Custom YouTube Tools imports
+import {
+  YouTubeTagExtractor,
+  YouTubeTagGenerator,
+  YouTubeHashtagExtractor,
+  YouTubeHashtagGenerator,
+  YouTubeTitleExtractor,
+  YouTubeTitleGenerator,
+  YouTubeTitleLengthChecker,
+  YouTubeDescriptionExtractor,
+  YouTubeDescriptionGenerator,
+  YouTubeEmbedCodeGenerator,
+  YouTubeChannelIDExtractor,
+  YouTubeVideoStatistics,
+  YouTubeChannelStatistics,
+  YouTubeRegionRestrictionChecker,
+  YouTubeChannelLogoDownloader,
+  YouTubeChannelBannerDownloader,
+  YouTubeChannelFinder,
+  YouTubeThumbnailDownloader,
+  YouTubeTimestampLinkGenerator,
+  YouTubeSubscribeLinkGenerator,
+  YouTubeMoneyCalculator,
+  YouTubeVideoCountChecker,
+  YouTubeVideoTitleCapitalizer,
+  YouTubeCommentPicker,
+  YouTubeViewsRatioCalculator,
+  YouTubeChannelAgeChecker
+} from './components/tools/CustomYTools';
+
+// Custom SEO Tools imports
+import {
+  WebsiteRankingChecker,
+  KeywordsSuggestionTool,
+  KeywordDensityChecker,
+  GoogleCacheChecker,
+  GoogleIndexChecker,
+  MetaTagGenerator,
+  MetaTagAnalyzer,
+  OpenGraphChecker,
+  OpenGraphGenerator,
+  TwitterCardGenerator,
+  UTMBuilder,
+  DomainToIPConverter,
+  DomainAgeChecker,
+  WhoisDomainLookup,
+  HostingChecker,
+  DNSRecordsChecker,
+  WhatIsMyIPAddress,
+  IPAddressLookup
+} from './components/tools/CustomSEOTools';
+
+// Custom Dev & Utility Tools imports
+import {
+  PasswordGenerator as AdvancedPasswordGenerator,
+  TextToQRCode,
+  ImageResizer as AdvancedImageResizer,
+  ImageCompressor,
+  URLEncodeDecoder,
+  CSSMinifier,
+  JSMinifier,
+  CryptographicHasherMD
+} from './components/tools/CustomDevTools';
 
 const TOOL_CONFIG = [
-  // Document Category
-  { id: 'word-editor', name: 'Word Editor', description: 'Edit & Save docx', category: 'DOC', icon: FileText, color: 'bg-[#2563eb]', component: WordEditor },
-  { id: 'word-counter', name: 'Word Counter', description: 'Real-time text stats', category: 'DOC', icon: Type, color: 'bg-[#f43f5e]', component: WordCounterTool },
-  { id: 'text-to-word', name: 'Text to Word', description: 'Plain text to docx', category: 'DOC', icon: FileText, color: 'bg-[#4f46e5]', component: TextToWord },
-  { id: 'img-resize', name: 'Image Resize', description: 'Change dimensions', category: 'DOC', icon: Maximize2, color: 'bg-[#f43f5e]', component: ImageResizer },
-  { id: 'img-to-word-pro', name: 'Image to Word', description: 'AI Image to Docx', category: 'DOC', icon: FileText, color: 'bg-[#3b82f6]', component: ImageToWordPro },
-  { id: 'pic-to-pdf', name: 'Pic to PDF', description: 'Convert image to PDF', category: 'DOC', icon: ImageIcon, color: 'bg-[#14b8a6]', component: ImageToPdfTool }, 
-  { id: 'pic-to-word', name: 'Pic to Word', description: 'Convert image to Word', category: 'DOC', icon: FileText, color: 'bg-[#2563eb]', component: ImageToWordTool },
-  { id: 'word-to-pdf', name: 'Word to PDF', description: 'Convert doc to PDF', category: 'DOC', icon: FileText, color: 'bg-[#2563eb]', component: WordToPDF },
-  { id: 'pdf-to-word', name: 'PDF to Word', description: 'Convert PDF to doc', category: 'DOC', icon: FileDown, color: 'bg-[#0ea5e9]', component: PDFToWord },
-  { id: 'excel-to-pdf', name: 'Excel to PDF', description: 'Convert xls to PDF', category: 'DOC', icon: FileSpreadsheet, color: 'bg-[#059669]', component: ExcelToPDF },
-  { id: 'pdf-to-excel', name: 'PDF to Excel', description: 'Convert PDF to xls', category: 'DOC', icon: FileUp, color: 'bg-[#0d9488]', component: PDFToExcel },
-  { id: 'ppt-to-pdf', name: 'PPT to PDF', description: 'Convert ppt to PDF', category: 'DOC', icon: Monitor, color: 'bg-[#e11d48]', component: PDFMerge },
-  { id: 'pdf-compress', name: 'Compress', description: 'Reduce file size', category: 'DOC', icon: Zap, color: 'bg-[#f59e0b]', component: PDFCompress },
-  { id: 'pdf-text-editor', name: 'PDF Editor', description: 'Edit PDF text', category: 'DOC', icon: Settings, color: 'bg-[#ec4899]', component: PDFTextEditor },
-  { id: 'pdf-merge', name: 'PDF Merge', description: 'Join PDF files', category: 'DOC', icon: FileCode, color: 'bg-[#8b5cf6]', component: PDFMerge },
-  { id: 'pdf-pagination', name: 'Pagination', description: 'Add page numbers', category: 'DOC', icon: Hash, color: 'bg-[#14b8a6]', component: PDFPageNumbering },
-  { id: 'scan-to-pdf', name: 'Scan to PDF', description: 'Mobile PDF scanner', category: 'DOC', icon: FileUp, color: 'bg-[#6366f1]', component: ScanToPDF },
+  // SECTION 1: Document Solutions (DOC)
+  { id: 'pdf-merge', name: 'PDF Merge', description: 'Combine multiple PDF documents into one single file.', category: 'DOC', icon: FileUp, color: 'bg-red-600', component: PDFMerge },
+  { id: 'pdf-compress', name: 'PDF Compress', description: 'Compress and reduce the file size of your PDF files.', category: 'DOC', icon: FileDown, color: 'bg-orange-600', component: PDFCompress },
+  { id: 'pdf-editor', name: 'PDF Editor', description: 'Edit and manage text content inside your PDF files.', category: 'DOC', icon: FileEdit, color: 'bg-blue-600', component: PDFTextEditor },
+  { id: 'pdf-to-excel', name: 'PDF to Excel Converter', description: 'Extract tables and databases from PDF as spreadsheet.', category: 'DOC', icon: FileSpreadsheet, color: 'bg-green-600', component: PDFToExcel },
+  { id: 'excel-to-pdf', name: 'Excel to PDF Creator', description: 'Output spreadsheet matrices to pristine PDF files.', category: 'DOC', icon: FileSpreadsheet, color: 'bg-emerald-600', component: ExcelToPDF },
+  { id: 'pdf-numbering', name: 'PDF Page Numbering', description: 'Auto-stamp sequential pagination onto PDF files.', category: 'DOC', icon: FileType, color: 'bg-teal-600', component: PDFPageNumbering },
+  { id: 'word-editor', name: 'Word Editor Pro', description: 'Professional rich text processor and docx canvas.', category: 'DOC', icon: FileText, color: 'bg-blue-700', component: WordEditor },
+  { id: 'word-to-pdf', name: 'Word to PDF Converter', description: 'Transform .docx layouts directly into standard PDFs.', category: 'DOC', icon: FileDown, color: 'bg-red-600', component: WordToPDF },
+  { id: 'pdf-to-word', name: 'PDF to Word Converter', description: 'Re-serialize PDF contents into docx word blocks.', category: 'DOC', icon: FileUp, color: 'bg-sky-600', component: PDFToWord },
+  { id: 'img-to-pdf', name: 'Image to PDF Maker', description: 'Convert camera photos or screenshots into pages of PDF.', category: 'DOC', icon: ImageIcon, color: 'bg-[#a21caf]', component: ImageToPdfTool },
+  { id: 'scan-pdf', name: 'Camera Scan to PDF', description: 'Map captured image streams into complete multi-page PDF.', category: 'DOC', icon: Camera, color: 'bg-violet-600', component: ScanToPDF },
+  { id: 'img-to-word', name: 'Image to Word Basic', description: 'Generate docx pages from flat images directly.', category: 'DOC', icon: FileText, color: 'bg-[#7c3aed]', component: ImageToWordTool },
+  { id: 'word-counter', name: 'Word Counter Tool', description: 'Review lengths, paragraph densities, and reading durations.', category: 'DOC', icon: AlignLeft, color: 'bg-emerald-600', component: WordCounterTool },
+  { id: 'text-to-word', name: 'Text to Word Exporter', description: 'Write clear typography content and output as clean .docx.', category: 'DOC', icon: FileType, color: 'bg-indigo-600', component: TextToWord },
 
-  // AI & Media Category
-  { id: 'video-editor', name: 'Video Studio Pro', description: 'Elite Trim & Merge', category: 'AI', icon: Video, color: 'bg-[#6366f1]', component: VideoEditor },
-  { id: 'video-to-audio', name: 'MP4 to MP3', description: 'Extract Master Audio track', category: 'AI', icon: Music, color: 'bg-[#a855f7]', component: VideoToAudio },
-  { id: 'music-studio', name: 'Music Studio Pro', description: 'AI Music Gen (Suno)', category: 'AI', icon: Music, color: 'bg-[#8b5cf6]', component: MusicStudioPro },
-  { id: 'photo-trends', name: 'Photo Style Pro', description: 'Live Photo Trends', category: 'AI', icon: Camera, color: 'bg-[#ec4899]', component: TrendingPhotoStyle },
-  { id: 'audio-editor', name: 'Audio Studio Pro', description: 'Trim & Merge Tracks', category: 'AI', icon: Mic, color: 'bg-[#f59e0b]', component: AudioEditor },
-  { id: 'sm-trends', name: 'Social Trends', description: 'Live viral topics', category: 'AI', icon: Flame, color: 'bg-[#ff5722]', component: SocialMediaTrendingTool },
-  { id: 'yt-tags', name: 'YT Tag Live', description: 'Viral tag generation', category: 'AI', icon: Tag, color: 'bg-[#ff0000]', component: YouTubeTagTool },
-  { id: 'yt-research', name: 'YT Research', description: 'Live Market Intel', category: 'AI', icon: BarChart2, color: 'bg-[#ff0000]', component: YouTubeResearchTool },
-  { id: 'yt-transcript', name: 'YT Transcript', description: 'AI Captions extraction', category: 'AI', icon: FileText, color: 'bg-[#ff0000]', component: YouTubeTranscript },
-  { id: 'social-audit', name: 'Social Blade AI', description: 'Live Stats & Analytics', category: 'AI', icon: BarChart3, color: 'bg-[#6366f1]', component: SocialAudit },
-  { id: 'yt-seo', name: 'YT SEO Pro', description: 'Rank your videos #1', category: 'AI', icon: Youtube, color: 'bg-[#ff0000]', component: YouTubeSEOTool },
-  { id: 'hashtag-generator', name: 'AI Hashtag', description: 'Social Media tags', category: 'AI', icon: Hash, color: 'bg-[#ffca28]', component: HashtagGenerator },
-  { id: 'screenshot-editor', name: 'SS Editor', description: 'Annotate & Redact', category: 'AI', icon: Camera, color: 'bg-[#06b6d4]', component: ScreenshotEditor },
-  { id: 'bg-remover', name: 'BG Remover', description: 'AI background removal', category: 'AI', icon: Layers, color: 'bg-[#6366f1]', component: BackgroundRemover },
-  { id: 'photo-editor', name: 'Photo Pro', description: 'Advanced image editor', category: 'AI', icon: ImageIcon, color: 'bg-[#d946ef]', component: PhotoEditor },
-  { id: 'video-cr-remover', name: 'YouTube CR', description: 'Bypass Content ID', category: 'AI', icon: Youtube, color: 'bg-[#ef4444]', component: VideoCopyrightRemover },
-  { id: 'copyright-ai', name: 'Image Eraser', description: 'Deep erase marks', category: 'AI', icon: ShieldAlert, color: 'bg-[#4f46e5]', component: CopyrightRemoverAI },
-  { id: 'ocr', name: 'Image 2 Text', description: 'Extract text AI', category: 'AI', icon: FileText, color: 'bg-[#10b981]', component: OCRTool },
-  { id: 'watermark-remover', name: 'No Watermark', description: 'AI Logo remover', category: 'AI', icon: Layers, color: 'bg-[#f43f5e]', component: WatermarkRemover },
-  { id: 'magic-layers', name: 'Magic Layers', description: 'Text behind images', category: 'AI', icon: Layers, color: 'bg-[#8b5cf6]', component: PictureMagicLayers },
-  { id: 'image-beautifier', name: 'Beautifier', description: 'AI Photo enhancement', category: 'AI', icon: Zap, color: 'bg-[#d946ef]', component: ImageBeautifier },
-  // { id: 'picture-to-360', name: '360° Vision', description: 'Immersive 3D Converter', category: 'AI', icon: Rotate3d, color: 'bg-[#6366f1]', component: PictureTo360 },
+  // SECTION 2: Media & Creators Tools (MEDIA)
+  { id: 'copyright-remover', name: 'Copyright Sanitizer', description: 'Remove metadata, tags, and licensing stamps from images.', category: 'AI', icon: Sparkles, color: 'bg-purple-600', component: CopyrightRemoverAI },
+  { id: 'video-copyright-remover', name: 'Video Copyright Sanitizer', description: 'Scan and clean copyrighted properties in media feeds.', category: 'AI', icon: Video, color: 'bg-indigo-600', component: VideoCopyrightRemover },
+  { id: 'ocr-tool', name: 'OCR Text Extractor', description: 'Extract text from scanned layouts using offline OCR.', category: 'AI', icon: Search, color: 'bg-yellow-600', component: OCRTool },
+  { id: 'img-to-word-pro', name: 'Image to Word Compiler Pro', description: 'High precision offline document transcription and compilation.', category: 'AI', icon: Sparkles, color: 'bg-indigo-700', component: ImageToWordPro },
+  { id: 'stt-ai', name: 'Speech to Text Converter', description: 'Translate speech and spoken audio files to written logs.', category: 'AI', icon: Mic, color: 'bg-rose-600', component: STTAI },
+  { id: 'tts-ai', name: 'Text to Speech Engine', description: 'Listen to realistic high-fidelity copy reading lines.', category: 'AI', icon: Volume2, color: 'bg-violet-700', component: TTSAI },
+  { id: 'video-editor', name: 'Video Trim & Slice', description: 'Pristine editor canvas to splice and adjust mp4s.', category: 'AI', icon: Video, color: 'bg-pink-600', component: VideoEditor },
+  { id: 'video-to-audio', name: 'Video to MP3 Converter', description: 'Extract high fidelity audio signals to mp3.', category: 'AI', icon: Music, color: 'bg-[#d97706]', component: VideoToAudio },
+  { id: 'audio-editor', name: 'Audio Editor Studio', description: 'Splice soundboards and merge tracks smoothly.', category: 'AI', icon: Music, color: 'bg-teal-600', component: AudioEditor },
+  { id: 'music-studio', name: 'Music Studio Pro', description: 'Mix virtual instrument feeds on custom soundboards.', category: 'AI', icon: Music, color: 'bg-[#4f46e5]', component: MusicStudioPro },
+  { id: 'hashtag-generator', name: 'Hashtag Generator', description: 'Get popular viral social tags automatically.', category: 'AI', icon: Hash, color: 'bg-[#e11d48]', component: HashtagGenerator },
+  { id: 'text-to-hashtags', name: 'Text to Hashtags Converter', description: 'Transform normal sentences, captions, and paragraphs into trending, optimized social tags.', category: 'AI', icon: Hash, color: 'bg-cyan-600', component: TextToHashtagsConverter },
+  { id: 'yt-seo', name: 'YouTube SEO Master', description: 'Analyze tag CTR layouts and meta performance.', category: 'AI', icon: Youtube, color: 'bg-red-600', component: YouTubeSEOTool },
+  { id: 'yt-research', name: 'YouTube Research Hub', description: 'Find metrics and target niches for trending content.', category: 'AI', icon: Search, color: 'bg-[#b91c1c]', component: YouTubeResearchTool },
+  { id: 'yt-tag-tool', name: 'YouTube Tag Extractor Pro', description: 'Extract rankings, tags and descriptions from video feeds.', category: 'AI', icon: Tag, color: 'bg-[#ef4444]', component: YouTubeTagTool },
+  { id: 'yt-transcript', name: 'YouTube Transcript Reader', description: 'Download human-friendly timeline transcripts from videos.', category: 'AI', icon: AlignLeft, color: 'bg-[#991b1b]', component: YouTubeTranscript },
+  { id: 'social-audit', name: 'Social Profile Auditor', description: 'Evaluate channel profiles for engagement leaks.', category: 'AI', icon: Monitor, color: 'bg-blue-800', component: SocialAudit },
+  { id: 'social-trends', name: 'Social Media Trends', description: 'Highlight viral terms across search platforms.', category: 'AI', icon: Flame, color: 'bg-amber-600', component: SocialMediaTrendingTool },
+  { id: 'photo-stylist', name: 'Trending Photo Stylist', description: 'Add dynamic overlays, grains, and vintage templates.', category: 'AI', icon: Palette, color: 'bg-sky-500', component: TrendingPhotoStyle },
+  { id: 'bg-remover', name: 'Background Studio Remover', description: 'Delineate and remove backdrops under layers.', category: 'AI', icon: Sparkles, color: 'bg-[#7c3aed]', component: BackgroundRemover },
+  { id: 'watermark-remover', name: 'Watermark Clean Remover', description: 'Retouch stamps and purge background overlays.', category: 'AI', icon: Layers, color: 'bg-cyan-700', component: WatermarkRemover },
+  { id: 'pic-magic-layers', name: 'Picture Magic Layers', description: 'Dynamic layered image builder and filter studio.', category: 'AI', icon: Layers, color: 'bg-[#db2777]', component: PictureMagicLayers },
+  { id: 'img-beautifier', name: 'Image Beautifier Pro', description: 'One-click contrast, clarity and lighting filters.', category: 'AI', icon: Palette, color: 'bg-fuchsia-600', component: ImageBeautifier },
+  { id: 'screenshot-editor', name: 'Screenshot Annotation', description: 'Sketch text and marks inside screenshot layouts.', category: 'AI', icon: Monitor, color: 'bg-[#475569]', component: ScreenshotEditor },
+  { id: 'photo-editor', name: 'Photo Workspace Pro', description: 'Unleash overlays, text, templates, and crops.', category: 'AI', icon: Palette, color: 'bg-[#2563eb]', component: PhotoEditor },
+ 
+  // SECTION 3: Utilities (UTIL)
+  { id: 'age-calc', name: 'Age Calculator', description: 'Chronological lookup of dates, days and times.', category: 'UTIL', icon: Clock, color: 'bg-[#047857]', component: AgeCalculator },
+  { id: 'std-calculator', name: 'Standard Calculator', description: 'Rapid clean layout mathematical operations.', category: 'UTIL', icon: LayoutGrid, color: 'bg-slate-700', component: Calculator },
+  { id: 'sci-calc', name: 'Scientific Calculator', description: 'Advanced calculations, equations, and mathematical sets.', category: 'UTIL', icon: LayoutGrid, color: 'bg-blue-800', component: ScientificCalculator },
+  { id: 'qr-suite', name: 'Custom QR Generator', description: 'Generate beautifully stylized corporate QR codes.', category: 'UTIL', icon: QrCode, color: 'bg-cyan-600', component: QRSuite },
+  { id: 'qr-scanner', name: 'Webcam QR Scanner', description: 'Scan QR codes from files or physical webcam feeds.', category: 'UTIL', icon: QrCode, color: 'bg-emerald-600', component: QRScanner },
+  { id: 'whatsapp-tool', name: 'WhatsApp Direct Link', description: 'Generate clickable messaging links with templates.', category: 'UTIL', icon: MessageSquare, color: 'bg-[#22c55e]', component: WhatsAppTool },
+  { id: 'barcode-gen', name: 'Prismatic Barcode Forge', description: 'Generate active standard barcode codes like UPC or Code 128.', category: 'UTIL', icon: BarcodeIcon, color: 'bg-[#18181b]', component: BarcodeGenerator },
+  { id: 'num-to-word', name: 'Number to Word Pro', description: 'Output commercial receipts or calculations to words.', category: 'UTIL', icon: Type, color: 'bg-[#0d9488]', component: NumberToWordTool },
+  { id: 'heic-converter', name: 'HEIC to JPG Converter', description: 'Convert Apple format pictures back to raw standard JPG.', category: 'UTIL', icon: RefreshCw, color: 'bg-slate-600', component: HEICConverter },
+  { id: 'img-converter', name: 'Image Format Converter', description: 'Map structures among standard and vector image archives.', category: 'UTIL', icon: ImageIcon, color: 'bg-[#ea580c]', component: ImageConverter },
+  { id: 'img-resizer', name: 'Image Resizer Studio', description: 'Transform sizes & pixel bounds under ratio locks.', category: 'UTIL', icon: Maximize2, color: 'bg-[#3b82f6]', component: ImageResizer },
+  { id: 'link-short', name: 'Smart Link Shortener', description: 'Transform heavy links to short codes with QR supports.', category: 'UTIL', icon: Link2, color: 'bg-[#db2777]', component: LinkShortener },
+  { id: 'world-map', name: 'World Globe Explorer', description: 'Study border metrics and locations directly on globe canvas.', category: 'UTIL', icon: Globe, color: 'bg-indigo-900', component: WorldMapTool },
+  { id: 'bd-3d-map', name: 'Bangladesh 3D GIS', description: 'Stately topological division exploration map in 3D.', category: 'UTIL', icon: MapIcon, color: 'bg-emerald-700', component: Bangladesh3DMap },
 
-  // Utilities
-  { id: 'age-calculator', name: 'Age Calculator', description: 'Astronomical Age Breakdown', category: 'UTIL', icon: Clock, color: 'bg-[#6366f1]', component: AgeCalculator },
-  { id: 'qr-scanner', name: 'QR Scanner Elite', description: 'Fast Camera/File Scan', category: 'UTIL', icon: Camera, color: 'bg-[#4f46e5]', component: QRScanner },
-  { id: 'qr-suite', name: 'QR Generator', description: 'Create custom QR codes', category: 'UTIL', icon: QrCode, color: 'bg-[#06b6d4]', component: QRSuite },
-  { id: 'wa-gen', name: 'WhatsApp Link', description: 'Direct chat generator', category: 'UTIL', icon: MessageSquare, color: 'bg-[#10b981]', component: WhatsAppTool },
-  { id: 'barcode-gen', name: 'Barcode Gen', description: 'Precision Barcode engine', category: 'UTIL', icon: BarcodeIcon, color: 'bg-[#6366f1]', component: BarcodeGenerator },
-  { id: 'num-to-word', name: 'Number to Word', description: 'Numeric Linguistics', category: 'UTIL', icon: Hash, color: 'bg-cyan-600', component: NumberToWordTool },
-  { id: 'sci-calculator', name: 'Science Calc', description: 'Scientific Computing', category: 'UTIL', icon: Zap, color: 'bg-[#8b5cf6]', component: ScientificCalculator },
-  { id: 'calculator', name: 'Calcu AI', description: 'Voice Calculator', category: 'UTIL', icon: Box, color: 'bg-[#f59e0b]', component: Calculator },
-  { id: 'heic-converter', name: 'HEIC 2 JPG', description: 'iPhone image fix', category: 'UTIL', icon: ImageIcon, color: 'bg-[#14b8a6]', component: HEICConverter },
-  { id: 'img-converter', name: 'Image Converter', description: 'PNG/JPG/WebP/AVIF', category: 'UTIL', icon: RefreshCw, color: 'bg-[#3b82f6]', component: ImageConverter },
-  { id: 'link-shortener', name: 'Link Shorter', description: 'Swift URL condensation', category: 'UTIL', icon: Link2, color: 'bg-[#8b5cf6]', component: LinkShortener },
-  { id: 'stt-ai', name: 'Voice 2 Text', description: 'Real-time AI typing', category: 'UTIL', icon: Mic, color: 'bg-[#8b5cf6]', component: STTAI },
-  { id: 'tts-ai', name: 'Text 2 Voice', description: 'AI natural speech', category: 'UTIL', icon: Volume2, color: 'bg-[#ec4899]', component: TTSAI },
-  { id: 'bangla-calendar', name: 'Live Calendar', description: 'English & Bangla dual kit', category: 'UTIL', icon: CalendarIcon, color: 'bg-[#4f46e5]', component: BanglaCalendar },
-  { id: 'world-map', name: 'World Explorer', description: 'Interactive Map Intelligence', category: 'UTIL', icon: Globe, color: 'bg-blue-600', component: WorldMapTool },
-  { id: 'bd-map-3d', name: 'BD Map 3D', description: 'Bangladesh District Explorer', category: 'UTIL', icon: MapIcon, color: 'bg-emerald-600', component: Bangladesh3DMap },
-  { id: 'grammar-pro', name: 'AI Grammar', description: 'Fix & Perfect text', category: 'LANG', icon: SpellCheck, color: 'bg-indigo-600', component: GrammarChecker },
+  // SECITON 3B: Offline YouTube tools
+  { id: 'yt-tag-extractor-custom', name: 'YouTube Tag Extractor', description: 'Isolate keyphrase tags and identifiers from description copy blocks.', category: 'UTIL', icon: Tag, color: 'bg-red-600', component: YouTubeTagExtractor },
+  { id: 'yt-tag-generator-custom', name: 'YouTube Tag Generator', description: 'Generate offline SEO-optimized tags and secondary search phrases.', category: 'UTIL', icon: Sparkles, color: 'bg-red-700', component: YouTubeTagGenerator },
+  { id: 'yt-hashtag-extractor-custom', name: 'YouTube Hashtag Extractor', description: 'Extract all hashtag instances from multi-line text descriptions.', category: 'UTIL', icon: Hash, color: 'bg-red-600', component: YouTubeHashtagExtractor },
+  { id: 'yt-hashtag-gen-custom', name: 'YouTube Hashtag Generator', description: 'Instantly build popular hashtag variations for your subject idea.', category: 'UTIL', icon: Hash, color: 'bg-red-700', component: YouTubeHashtagGenerator },
+  { id: 'yt-title-extractor-custom', name: 'YouTube Title Extractor', description: 'Purge metadata streams to target the primary video title frame.', category: 'UTIL', icon: FileText, color: 'bg-red-600', component: YouTubeTitleExtractor },
+  { id: 'yt-title-gen-custom', name: 'YouTube Title Generator', description: 'Create high CTR click-worthy video title formulas offline.', category: 'UTIL', icon: Sparkles, color: 'bg-red-700', component: YouTubeTitleGenerator },
+  { id: 'yt-title-length-checker-custom', name: 'YouTube Title Length Checker', description: 'Measure character limits and receive visual CTR evaluations.', category: 'UTIL', icon: Sliders, color: 'bg-red-600', component: YouTubeTitleLengthChecker },
+  { id: 'yt-desc-extractor-custom', name: 'YouTube Description Extractor', description: 'Separate descriptions, timestamps and copy from links or metadata.', category: 'UTIL', icon: FileText, color: 'bg-red-600', component: YouTubeDescriptionExtractor },
+  { id: 'yt-desc-generator-custom', name: 'YouTube Description Generator', description: 'Build structured, high-conversion, professional video descriptions.', category: 'UTIL', icon: FileText, color: 'bg-red-700', component: YouTubeDescriptionGenerator },
+  { id: 'yt-embed-generator-custom', name: 'YouTube Embed Code Generator', description: 'Forge responsive HTML iframe copy-paste block matching custom sizes.', category: 'UTIL', icon: Code, color: 'bg-red-600', component: YouTubeEmbedCodeGenerator },
+  { id: 'yt-channel-id-extractor-custom', name: 'YouTube Channel ID Extractor', description: 'Resolve UCID channel formats from names and URLs offline.', category: 'UTIL', icon: UserCheck, color: 'bg-red-600', component: YouTubeChannelIDExtractor },
+  { id: 'yt-video-stats-custom', name: 'YouTube Video Stats Estimator', description: 'Predict average CTR, like ratio, and retention metrics locally.', category: 'UTIL', icon: BarChart2, color: 'bg-red-700', component: YouTubeVideoStatistics },
+  { id: 'yt-channel-stats-custom', name: 'YouTube Channel Analytics', description: 'Locally analyze revenue ranges and engagement loyalty scoring.', category: 'UTIL', icon: BarChart3, color: 'bg-red-600', component: YouTubeChannelStatistics },
+  { id: 'yt-region-checker-custom', name: 'YouTube Region Restriction Auditor', description: 'Check contents categories compliance against geographic geo-blocking.', category: 'UTIL', icon: Globe, color: 'bg-red-600', component: YouTubeRegionRestrictionChecker },
+  { id: 'yt-logo-downloader-custom', name: 'YouTube Channel Logo Maker', description: 'Construct visual vector placeholder profile logos offline.', category: 'UTIL', icon: ImageIcon, color: 'bg-red-600', component: YouTubeChannelLogoDownloader },
+  { id: 'yt-banner-downloader-custom', name: 'YouTube Banner Wallpaper Hub', description: 'Resolve abstract backdrop banner cover templates for your style.', category: 'UTIL', icon: ImageIcon, color: 'bg-red-700', component: YouTubeChannelBannerDownloader },
+  { id: 'yt-channel-finder-custom', name: 'YouTube Channel Finder', description: 'Find benchmark references, trends, and inspiration sources.', category: 'UTIL', icon: Search, color: 'bg-red-600', component: YouTubeChannelFinder },
+  { id: 'yt-thumbnail-downloader-custom', name: 'YouTube Thumbnail Grabber', description: 'Retrieve direct high-resolution video thumbnail image URLs.', category: 'UTIL', icon: ImageIcon, color: 'bg-red-700', component: YouTubeThumbnailDownloader },
+  { id: 'yt-timestamp-generator-custom', name: 'YouTube Timestamp Link Builder', description: 'Build direct coordinate links pinpointing physical second targets.', category: 'UTIL', icon: Link, color: 'bg-red-600', component: YouTubeTimestampLinkGenerator },
+  { id: 'yt-subscribe-link-custom', name: 'YouTube Subscriber Link Forge', description: 'Build direct links triggering confirmation dialog windows.', category: 'UTIL', icon: Link, color: 'bg-red-700', component: YouTubeSubscribeLinkGenerator },
+  { id: 'yt-money-calculator-custom', name: 'YouTube Revenue Calculator', description: 'Estimate monthly and yearly ad earnings based on custom RPM.', category: 'UTIL', icon: DollarSign, color: 'bg-red-600', component: YouTubeMoneyCalculator },
+  { id: 'yt-video-count-custom', name: 'YouTube Video Upload Velocity', description: 'Analyze uploads required to target subscriber goals over time.', category: 'UTIL', icon: Sliders, color: 'bg-red-700', component: YouTubeVideoCountChecker },
+  { id: 'yt-title-capitalizer-custom', name: 'YouTube Title AP Case Capitalizer', description: 'Convert titles to grammatically pristine AP Title Case style guidelines.', category: 'UTIL', icon: Type, color: 'bg-red-600', component: YouTubeVideoTitleCapitalizer },
+  { id: 'yt-comment-picker-custom', name: 'YouTube Giveaway Comment Picker', description: 'Select random comment winners from a list block offline.', category: 'UTIL', icon: Sliders, color: 'bg-red-700', component: YouTubeCommentPicker },
+  { id: 'yt-views-ratio-custom', name: 'YouTube Views to Engagement Ratio', description: 'Determine audience interaction scores from simple parameters.', category: 'UTIL', icon: BarChart2, color: 'bg-red-600', component: YouTubeViewsRatioCalculator },
+  { id: 'yt-channel-age-custom', name: 'YouTube Channel Age Estimator', description: 'Estimate registration anniversaries and history parameters locally.', category: 'UTIL', icon: CalendarIcon, color: 'bg-red-600', component: YouTubeChannelAgeChecker },
 
-  // Language
-  { id: 'translator', name: 'Translate', description: 'AI Language expert', category: 'LANG', icon: Languages, color: 'bg-[#10b981]', component: Translator },
-  { id: 'en-bn-dict', name: 'En-Bn Dict', description: 'AI Powered Dictionary', category: 'LANG', icon: Book, color: 'bg-[#6366f1]', component: EnglishToBengaliDictionary },
+  // SECTION 3C: Offline SEO & Domain Tools
+  { id: 'seo-rank-checker-custom', name: 'Website Ranking Auditor', description: 'Retrieve estimated domain ranks and backlinks metrics locally.', category: 'UTIL', icon: Globe, color: 'bg-slate-700', component: WebsiteRankingChecker },
+  { id: 'seo-keyword-suggest-custom', name: 'Keywords Suggestion Tool', description: 'Determine related semantic modifiers and variations.', category: 'UTIL', icon: Key, color: 'bg-slate-700', component: KeywordsSuggestionTool },
+  { id: 'seo-density-checker-custom', name: 'Keyword Density Auditor', description: 'Identify word densities and syllable repeats in copy streams.', category: 'UTIL', icon: FileText, color: 'bg-slate-700', component: KeywordDensityChecker },
+  { id: 'seo-cache-checker-custom', name: 'Google Cache Searcher', description: 'Format direct lookup web links targeting historical mirrors.', category: 'UTIL', icon: Search, color: 'bg-slate-700', component: GoogleCacheChecker },
+  { id: 'seo-index-checker-custom', name: 'Google Site Indexer link', description: 'Format precise search links querying site: index count records.', category: 'UTIL', icon: Search, color: 'bg-slate-700', component: GoogleIndexChecker },
+  { id: 'seo-meta-generator-custom', name: 'Meta Tag HTML Builder', description: 'Compile perfectly formed SEO title and desc meta tags.', category: 'UTIL', icon: Code, color: 'bg-slate-700', component: MetaTagGenerator },
+  { id: 'seo-meta-analyzer-custom', name: 'Meta Tag Head Auditor', description: 'Analyze HTML header snippets for compliance deficiencies.', category: 'UTIL', icon: Code, color: 'bg-slate-700', component: MetaTagAnalyzer },
+  { id: 'seo-og-checker-custom', name: 'Open Graph Element Auditor', description: 'Analyze social preview og: elements and cover tags.', category: 'UTIL', icon: Globe, color: 'bg-slate-700', component: OpenGraphChecker },
+  { id: 'seo-og-generator-custom', name: 'Open Graph Tag Compiler', description: 'Format Facebook and modern social media card tags.', category: 'UTIL', icon: Code, color: 'bg-slate-700', component: OpenGraphGenerator },
+  { id: 'seo-twitter-card-custom', name: 'Twitter Cards Meta Compiler', description: 'Generate custom summary tags optimized for Twitter.', category: 'UTIL', icon: Code, color: 'bg-slate-700', component: TwitterCardGenerator },
+  { id: 'seo-utm-builder-custom', name: 'UTM Campaign URL Builder', description: 'Easily append tracking parameter tags to promotional links.', category: 'UTIL', icon: Navigation, color: 'bg-slate-700', component: UTMBuilder },
+  { id: 'seo-domain-to-ip-custom', name: 'Domain name to IP Resolver', description: 'Resolve public domains to A IPv4 records offline.', category: 'UTIL', icon: Server, color: 'bg-slate-700', component: DomainToIPConverter },
+  { id: 'seo-domain-age-custom', name: 'Domain Age Calculator', description: 'Estimate domain creation dates and registrar origins.', category: 'UTIL', icon: Globe, color: 'bg-slate-700', component: DomainAgeChecker },
+  { id: 'seo-whois-lookup-custom', name: 'WHOIS Record Parser', description: 'Retrieve administrative registrar ownership files locally.', category: 'UTIL', icon: Server, color: 'bg-slate-700', component: WhoisDomainLookup },
+  { id: 'seo-hosting-checker-custom', name: 'Host Server Provider Auditor', description: 'Locate hosting networks and server CDNs under IP checks.', category: 'UTIL', icon: Server, color: 'bg-slate-700', component: HostingChecker },
+  { id: 'seo-dns-record-custom', name: 'DNS Records Audit Board', description: 'Inspect simulated MX, AAAA, and CNAME records locally.', category: 'UTIL', icon: Globe, color: 'bg-slate-700', component: DNSRecordsChecker },
+  { id: 'seo-my-ip-custom', name: 'What Is My IP Locator', description: 'Retrieve mock coordinate and provider detail markers of current gateway.', category: 'UTIL', icon: Navigation, color: 'bg-slate-700', component: WhatIsMyIPAddress },
+  { id: 'seo-ip-lookup-custom', name: 'IP Geolocation Coordinates Finder', description: 'Find timezone and geological boundaries matching custom IPs.', category: 'UTIL', icon: MapPin, color: 'bg-slate-700', component: IPAddressLookup },
+ 
+  // SECTION 4: Language & Learn (LANG)
+  { id: 'lang-translator', name: 'Multi-lingual Phrasebook & Translator', description: 'Fluently map texts across common global vocals.', category: 'LANG', icon: Languages, color: 'bg-indigo-600', component: Translator },
+  { id: 'en-bn-dict', name: 'English-Bengali Dictionary', description: 'Detailed search for words, definitions, and syllables.', category: 'LANG', icon: Book, color: 'bg-[#5b21b6]', component: EnglishToBengaliDictionary },
+  { id: 'bn-calendar', name: 'Bangla Calendar', description: 'Traditional Bengali seasons and dates lookup.', category: 'LANG', icon: CalendarIcon, color: 'bg-[#d97706]', component: BanglaCalendar },
+  { id: 'grammar-checker', name: 'Grammar & Spell Checker', description: 'Review styling typos, passive voices and layout grammar errors.', category: 'LANG', icon: SpellCheck, color: 'bg-[#6d28d9]', component: GrammarChecker },
+  { id: 'article-rewriter', name: 'Article Rephrase Rewriter', description: 'Rewrite, paraphrase or format articles with professional tone profile.', category: 'AI', icon: FileEdit, color: 'bg-blue-600', component: ArticleRewriter },
 
-  // Coding Category
-  { id: 'json-formatter', name: 'JSON Smith', description: 'Format & Validate JSON', category: 'CODE', icon: FileCode, color: 'bg-[#6366f1]', component: JSONFormatter },
-  { id: 'base64-tool', name: 'Base64 Kit', description: 'Encode/Decode data', category: 'CODE', icon: Binary, color: 'bg-[#10b981]', component: Base64Tool },
-  { id: 'pass-gen', name: 'Security Gen', description: 'Strong passwords AI', category: 'CODE', icon: Shield, color: 'bg-[#f43f5e]', component: PasswordGenerator },
-  { id: 'color-conv', name: 'Color Smith', description: 'Hex/RGB/HSL Expert', category: 'CODE', icon: Palette, color: 'bg-[#ec4899]', component: ColorConverter },
-  { id: 'html-entity', name: 'HTML Smith', description: 'Encode/Decode Entities', category: 'CODE', icon: Globe, color: 'bg-[#fbbf24]', component: HTMLEntityTool },
-  { id: 'url-tool', name: 'URL Smith', description: 'Encode/Decode URLs', category: 'CODE', icon: Link2, color: 'bg-[#0ea5e9]', component: URLTool },
+  // SECITON 4B: Custom Text Tools in LANG
+  { id: 'lorem-ipsum-gen', name: 'Lorem Ipsum Generator', description: 'Construct sample neutral text blocks with target paragraph counts.', category: 'LANG', icon: FileText, color: 'bg-indigo-600', component: LoremIpsumGenerator },
+  { id: 'num-to-word-converter', name: 'Number to Word Translator', description: 'Translate numerical numbers into written, spoken language sequences.', category: 'LANG', icon: Type, color: 'bg-indigo-600', component: NumberToWordConverter },
+  { id: 'word-to-num-converter', name: 'Word to Number Translator', description: 'Re-serialize written phrase numbers back to standard integers.', category: 'LANG', icon: Type, color: 'bg-indigo-600', component: WordToNumberConverter },
+
+  // SECTION 5: Developer Tools (CODE)
+  { id: 'json-formatter', name: 'JSON Formatter Studio', description: 'Perfect markup formatter & parser validation.', category: 'CODE', icon: Code, color: 'bg-indigo-600', component: JSONFormatter },
+  { id: 'base64-tool', name: 'Base64 Encoder/Decoder', description: 'Format file blobs & plain strings to secure Base64.', category: 'CODE', icon: Binary, color: 'bg-[#0284c7]', component: Base64Tool },
+  { id: 'pass-gen', name: 'Safe Password Forge', description: 'Create highly-secure passwords utilizing custom algorithms.', category: 'CODE', icon: Shield, color: 'bg-[#e11d48]', component: PasswordGenerator },
+  { id: 'color-converter', name: 'Color Suite Converter', description: 'Format and map color codes among HEX, RGB, and HSL.', category: 'CODE', icon: Palette, color: 'bg-[#db2777]', component: ColorConverter },
+  { id: 'html-entities', name: 'HTML Entity Tool', description: 'Escape custom typography layout lines to safe HTML nodes.', category: 'CODE', icon: Code, color: 'bg-amber-600', component: HTMLEntityTool },
+  { id: 'url-tool', name: 'URL Encoder / Decoder', description: 'Fully compliant URL codec encoder and query builder.', category: 'CODE', icon: Link2, color: 'bg-slate-600', component: URLTool },
+  { id: 'backwards-text', name: 'Backwards Text Generator', description: 'Transform text orientation, letters sequence and flip text upside down.', category: 'CODE', icon: ArrowLeftRight, color: 'bg-blue-600', component: BackwardsTextGenerator },
+  { id: 'text-compare', name: 'Text Compare Suite', description: 'Visual interactive side-by-side other differences highlighting.', category: 'CODE', icon: Split, color: 'bg-rose-600', component: TextCompare },
+  { id: 'text-to-slug', name: 'Text to Slug Converter', description: 'Transform titles, urls, and filenames into clean SEO-friendly slugs.', category: 'CODE', icon: Link2, color: 'bg-emerald-600', component: TextToSlugConverter },
+
+  // SECTION 5B: Custom Offline Text & Dev Utilities inside CODE
+  { id: 'case-converter-gen', name: 'Case Converter', description: 'Convert letters among UPPER, lower, Sentence, Title, and camelCase structures.', category: 'CODE', icon: Type, color: 'bg-indigo-600', component: CaseConverter },
+  { id: 'remove-line-breaks', name: 'Remove Line Breaks', description: 'Sanitize multiple text rows and spacing lines into single unified string runs.', category: 'CODE', icon: AlignLeft, color: 'bg-[#0284c7]', component: RemoveLineBreaks },
+  { id: 'text-repeater-gen', name: 'Text Repeater', description: 'Loop input copy segments sequentially based on custom delimiters.', category: 'CODE', icon: RefreshCw, color: 'bg-blue-600', component: TextRepeater },
+  { id: 'text-sorter-gen', name: 'Text Sorter & Ordering', description: 'Sort list keywords alphabetically or backward cleanly.', category: 'CODE', icon: Sliders, color: 'bg-teal-600', component: TextSorter },
+  { id: 'comma-separator-gen', name: 'Comma Separator Formatter', description: 'Inject or format list values with elegant comma divisions.', category: 'CODE', icon: Split, color: 'bg-rose-600', component: CommaSeparator },
+  { id: 'text-to-tags-converter', name: 'Text to Tags Converter', description: 'Extract and format phrases into tag items natively.', category: 'CODE', icon: Tag, color: 'bg-amber-600', component: TextToTagsConverter },
+  { id: 'dev-pass-gen-custom', name: 'Advanced Password Generator', description: 'Compile secure robust passkey sequences with custom symbol sets.', category: 'CODE', icon: Key, color: 'bg-slate-800', component: AdvancedPasswordGenerator },
+  { id: 'dev-qr-generator-custom', name: 'Text to QR Code', description: 'Construct raster QR barcodes for sharing offline.', category: 'CODE', icon: QrCode, color: 'bg-slate-800', component: TextToQRCode },
+  { id: 'dev-img-resizer-custom', name: 'Advanced Image Resizer', description: 'Set custom height and length and scale files under canvas views.', category: 'CODE', icon: Maximize2, color: 'bg-slate-800', component: AdvancedImageResizer },
+  { id: 'dev-img-compressor-custom', name: 'Advanced Image Compressor', description: 'Loop compress ratio quality parameters to reduce layout size.', category: 'CODE', icon: Minimize, color: 'bg-slate-800', component: ImageCompressor },
+  { id: 'dev-url-codec-custom', name: 'URL Encoder / Decoder Pro', description: 'Encode or decode special character variables from target URLs.', category: 'CODE', icon: Link2, color: 'bg-slate-800', component: URLEncodeDecoder },
+  { id: 'dev-css-minify-custom', name: 'CSS Stylesheets Minifier', description: 'Strip comments, spacing, and brackets padding from stylesheets.', category: 'CODE', icon: Code, color: 'bg-slate-800', component: CSSMinifier },
+  { id: 'dev-js-minify-custom', name: 'JavaScript Code Minifier', description: 'Strip comments, lines, and console log lines from scripts.', category: 'CODE', icon: Code, color: 'bg-slate-800', component: JSMinifier },
+  { id: 'dev-hasher-custom', name: 'Cryptographic Hasher', description: 'Digest secure high-performance SHA-256 and SHA-1 checksum hex strings locally.', category: 'CODE', icon: Hash, color: 'bg-slate-800', component: CryptographicHasherMD }
 ];
 
 import { FloatingContact } from './components/FloatingContact';
@@ -213,7 +381,7 @@ export default function App() {
   const renderActiveTool = () => {
     const tool = TOOL_CONFIG.find(t => t.id === activeTool);
     if (!tool) return null;
-    const ToolComponent = tool.component;
+    const ToolComponent = tool.component as any;
     return (
       <motion.div 
         initial={{ opacity: 0, x: 20 }}
@@ -234,7 +402,7 @@ export default function App() {
             <p className="text-[var(--text-muted)] font-medium">{tool.description}</p>
           </div>
           
-          <ToolComponent />
+          <ToolComponent toolId={tool.id} />
           
           <footer className="mt-20 pb-10 text-center">
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">

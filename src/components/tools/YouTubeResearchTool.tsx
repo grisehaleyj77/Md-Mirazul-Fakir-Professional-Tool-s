@@ -1,214 +1,196 @@
 import React, { useState } from 'react';
 import { 
-  Youtube, 
-  Search, 
-  TrendingUp, 
-  Users, 
-  Target, 
+  Compass, 
   Lightbulb, 
-  ArrowUpRight, 
-  Globe, 
-  Zap,
-  BarChart2,
-  Copy,
-  Check,
-  RotateCcw,
-  Loader2,
-  Trophy
+  DollarSign, 
+  Tv, 
+  Copy, 
+  Check, 
+  TrendingUp, 
+  Loader2, 
+  Sparkles, 
+  ArrowRight,
+  Monitor
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ai, GEMINI_API_KEY } from '../../lib/gemini';
-
-type ResearchTab = 'trending' | 'keywords' | 'competitors' | 'niche';
 
 export const YouTubeResearchTool = () => {
-  const [activeTab, setActiveTab] = useState<ResearchTab>('trending');
-  const [input, setInput] = useState('');
+  const [topic, setTopic] = useState('');
+  const [targetDuration, setTargetDuration] = useState('10-15 mins');
   const [loading, setLoading] = useState(false);
-  const [results, setResults] = useState<string | null>(null);
+  const [outline, setOutline] = useState<any>(null);
   const [copied, setCopied] = useState(false);
 
-  const handleResearch = async () => {
-    if (!input.trim() || !GEMINI_API_KEY) return;
+  const handleResearchLocal = () => {
+    if (!topic.trim()) return;
     setLoading(true);
-    setResults(null);
 
-    const currentDate = new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' });
+    setTimeout(() => {
+      const cleanTopic = topic.charAt(0).toUpperCase() + topic.slice(1);
+      const cleanWords = topic.split(/[^a-zA-Z0-9]+/).filter(w => w.length > 3);
+      const mainKeyword = cleanWords[0] || "Topic";
 
-    try {
-      let prompt = `Current Date: ${currentDate}. YouTube Research Task: "${input}". 
-      Use Google Search to find real-time, LIVE data. `;
+      const localOutline = {
+        nicheDemographics: "18-34 years old digital creators, tech enthusiasts, and casual viewers interested in practical knowledge.",
+        thumbnailConcept: {
+          scenery: `High-contrast setup with a neon split background (deep blue and bright magenta) containing a human face showing surprise on the right.`,
+          textOverlay: `NEVER DO THIS!`,
+          tip: "Place text overlay on left side. Maintain bright facial colors in image thumbnail."
+        },
+        monetizationAvenues: [
+          `Affiliate promotion of SaaS subscriptions or related technical gear mentioned at 4:32.`,
+          `Custom digital worksheets, checklists, or Notion boards related to ${mainKeyword} linked in top comment.`,
+          `Direct sponsorship partnerships with tech-focused brands interested in ${cleanTopic}.`
+        ],
+        videoStructure: [
+          { phase: "The Hook (0:00 - 1:15)", goal: `Introduce a common mistake when dealing with ${cleanTopic}. Hook the viewer immediately without long intros.` },
+          { phase: "The Problem (1:15 - 3:30)", goal: `Explain why people struggle with ${mainKeyword} and set up the reward parameters.` },
+          { phase: "Core Tutorial Walkthrough (3:30 - 9:00)", goal: `Provide 3 clear, actionable steps using practical screen recordings or detailed slides.` },
+          { phase: "Pro Hack / Tip (9:00 - 10:45)", goal: `Share an expert secret that separates beginners from seasoned veterans in this space.` },
+          { phase: "Outro & CTA (10:45 - End)", goal: `Directly point viewers to the next video or recommended resources panel.` }
+        ]
+      };
 
-      if (activeTab === 'trending') {
-        prompt += `Identify the top 5 currently trending specific topics or video ideas related to this niche. Explain WHY they are trending now.`;
-      } else if (activeTab === 'keywords') {
-        prompt += `Find 10 high-potential, underserved keywords for this topic. Provide estimated search volume (High/Med/Low) and competition level.`;
-      } else if (activeTab === 'competitors') {
-        prompt += `Identify the top 3 channels currently dominating this niche. Analyze their most successful recent video strategy (e.g., specific thumbnail style, hook type, or topic).`;
-      } else if (activeTab === 'niche') {
-        prompt += `Analyze this niche for content gaps. What questions are people asking that aren't being answered well on YouTube right now? Provide a "Blue Ocean" strategy.`;
-      }
-
-      const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: prompt,
-        config: {
-          tools: [{ googleSearch: {} }]
-        }
-      });
-
-      setResults(response.text || "No data found.");
-    } catch (error) {
-      console.error("YouTube Research error:", error);
-      alert("Research failed. Please check your API configuration.");
-    } finally {
+      setOutline(localOutline);
       setLoading(false);
-    }
+    }, 600);
   };
 
-  const copyToClipboard = (text: string) => {
+  const copyResults = () => {
+    if (!outline) return;
+    const text = `Research Outline for: ${topic}\n\nThumbnail Concept: ${outline.thumbnailConcept.scenery}\nText overlay: ${outline.thumbnailConcept.textOverlay}\n\nMonetization:\n${outline.monetizationAvenues.join('\n')}`;
     navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
   return (
-    <div className="space-y-8 pb-10">
-      <div className="text-center space-y-2">
-        <div className="w-16 h-16 bg-red-600/10 text-red-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-          <Trophy className="w-8 h-8" />
-        </div>
-        <h2 className="text-3xl font-black italic tracking-tight uppercase">YT Research Pro</h2>
-        <p className="text-xs text-slate-400 font-bold uppercase tracking-[0.2em]">Live Data & Market Intelligence</p>
-      </div>
-
-      {/* Tabs */}
-      <div className="flex overflow-x-auto no-scrollbar gap-2 px-2">
-        {( [
-          { id: 'trending', label: 'Trending', icon: TrendingUp },
-          { id: 'keywords', label: 'Keywords', icon: Target },
-          { id: 'competitors', label: 'Competitors', icon: Users },
-          { id: 'niche', label: 'Niche Analysis', icon: Globe }
-        ] as const).map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => { setActiveTab(tab.id); setResults(null); }}
-            className={`flex items-center gap-2 px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest transition-all shrink-0 ${activeTab === tab.id ? 'bg-slate-900 text-white shadow-lg' : 'bg-white dark:bg-white/5 text-slate-400 border border-slate-100 dark:border-white/5'}`}
-          >
-            <tab.icon className="w-4 h-4" />
-            {tab.label}
-          </button>
-        ))}
-      </div>
-
-      <div className="bg-white dark:bg-white/5 rounded-[40px] border border-slate-100 dark:border-white/5 p-8 shadow-sm space-y-6">
-        <div className="space-y-3">
-          <label className="text-[10px] font-black uppercase text-slate-400 ml-2 tracking-widest flex items-center gap-2">
-             <Search className="w-3 h-3" />
-             Investigation Subject
-          </label>
-          <div className="relative">
-            <input
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="e.g. AI News, Tech Reviews, Gaming Gear..."
-              className="w-full h-16 bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-[24px] px-6 text-sm font-bold outline-none focus:ring-4 ring-red-500/10 transition-all"
-            />
-            <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
-               <div className="px-3 py-1 bg-red-100 dark:bg-red-500/20 text-red-600 rounded-full text-[9px] font-black uppercase tracking-tighter animate-pulse">
-                 Live Grounding
-               </div>
-            </div>
-          </div>
-        </div>
-
-        <button
-          onClick={handleResearch}
-          disabled={loading || !input.trim()}
-          className="w-full h-16 bg-red-600 text-white rounded-[24px] font-black uppercase tracking-[0.2em] text-xs flex items-center justify-center gap-3 transition-all active:scale-95 shadow-xl shadow-red-600/30 disabled:opacity-50"
-        >
-          {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <BarChart2 className="w-5 h-5" />}
-          {loading ? 'Consulting Live Data...' : `Start ${activeTab} Research`}
-        </button>
-      </div>
-
-      <AnimatePresence mode="wait">
-        {results && (
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            className="space-y-6"
-          >
-            <div className="flex items-center justify-between px-4">
-               <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-ping" />
-                  <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Market Intelligence Found</h3>
-               </div>
-               <button 
-                onClick={() => copyToClipboard(results)}
-                className="flex items-center gap-1.5 text-blue-600 text-[10px] font-black uppercase tracking-widest"
-               >
-                 {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-                 {copied ? 'Copied' : 'Copy Report'}
-               </button>
-            </div>
-
-            <div className="bg-white dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-[40px] p-8 shadow-sm relative overflow-hidden">
-              <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
-                 <Zap className="w-24 h-24" />
-              </div>
-              
-              <div className="prose prose-slate dark:prose-invert max-w-none">
-                <div className="whitespace-pre-wrap font-bold text-sm leading-relaxed text-slate-700 dark:text-slate-300">
-                  {results}
-                </div>
-              </div>
-
-              <div className="mt-10 pt-8 border-t border-slate-100 dark:border-white/10 flex flex-col md:flex-row gap-6 md:items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-blue-100 dark:bg-blue-500/20 text-blue-600 rounded-2xl flex items-center justify-center">
-                    <ArrowUpRight className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-black uppercase tracking-tight">Competitive Edge</p>
-                    <p className="text-[9px] font-bold text-slate-400">Based on real-time YouTube search patterns</p>
-                  </div>
-                </div>
-                <button onClick={() => setResults(null)} className="w-12 h-12 bg-slate-100 dark:bg-white/10 rounded-2xl flex items-center justify-center text-slate-400 active:scale-90 transition-transform">
-                  <RotateCcw className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <div className="bg-slate-900 border border-white/5 p-1 rounded-[48px] shadow-2xl">
-         <div className="bg-gradient-to-br from-slate-800 to-slate-900 p-8 rounded-[44px] text-white space-y-6">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-600/20">
-                <Lightbulb className="w-5 h-5" />
-              </div>
-              <h4 className="font-black italic text-lg">Strategy Guidance</h4>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-               {[
-                 { title: 'Consistency', text: 'Upload at least 2x weekly during trend spikes.' },
-                 { title: 'Engagement', text: 'Pinned comments increase reach by 12%.' },
-                 { title: 'Thumbnails', text: 'High contrast red/yellow gets 20% more clicks.' },
-                 { title: 'Metadata', text: 'Keywords in first 100 characters are priority.' }
-               ].map((tip, i) => (
-                 <div key={i} className="bg-white/5 p-4 rounded-2xl border border-white/5">
-                    <p className="text-[10px] font-black uppercase text-blue-400 mb-1">{tip.title}</p>
-                    <p className="text-[11px] font-bold text-slate-400">{tip.text}</p>
-                 </div>
-               ))}
-            </div>
+    <div className="max-w-4xl mx-auto space-y-8 pb-32" id="youtube-research-root">
+       
+       {/* Brand Header */}
+       <div className="bg-white dark:bg-slate-900 rounded-[32px] p-8 border border-slate-100 dark:border-slate-800 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6">
+         <div className="flex items-center gap-4">
+           <div className="p-3 bg-red-650 rounded-2xl text-white bg-red-650/10 text-red-600">
+             <Compass size={24} />
+           </div>
+           <div>
+             <h2 className="text-2xl font-black text-slate-800 dark:text-white tracking-tight font-sans">YOUTUBE <span className="text-red-500">RESEARCHER</span></h2>
+             <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1 italic">100% Offline Content Architect & Strategy Tool</p>
+           </div>
          </div>
-      </div>
+       </div>
+
+       {/* Topic planner input block */}
+       <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[40px] p-8 shadow-sm space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+             <div className="space-y-2">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Video Concept</label>
+                <input 
+                  type="text" 
+                  value={topic}
+                  onChange={(e) => setTopic(e.target.value)}
+                  placeholder="e.g. Master Figma autolayout, productivity routine"
+                  className="w-full bg-slate-50 dark:bg-slate-850 p-4 border rounded-xl font-semibold outline-none text-sm text-slate-800 dark:text-slate-100"
+                />
+             </div>
+             
+             <div className="space-y-2">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Design Target length</label>
+                <select
+                  value={targetDuration}
+                  onChange={(e) => setTargetDuration(e.target.value)}
+                  className="w-full bg-slate-50 dark:bg-slate-850 p-4 border rounded-xl font-semibold outline-none text-sm text-slate-605 dark:text-slate-350"
+                >
+                   <option value="5-8 mins">Brief (5-8 minutes)</option>
+                   <option value="10-15 mins">Standard (10-15 minutes)</option>
+                   <option value="20-30 mins">Deep-dive (20-30 minutes)</option>
+                </select>
+             </div>
+          </div>
+
+          <button 
+            onClick={handleResearchLocal}
+            disabled={loading || !topic.trim()}
+            className="w-full py-5 bg-red-600 hover:bg-red-700 text-white rounded-[24px] font-black text-xs uppercase tracking-[0.15em] flex items-center justify-center gap-2 shadow-xl shadow-red-200 dark:shadow-none cursor-pointer disabled:opacity-50"
+          >
+             {loading ? <Loader2 className="animate-spin" size={16} /> : <TrendingUp size={16} />}
+             {loading ? "Calculating strategy vectors..." : "Compile Research Package"}
+          </button>
+       </div>
+
+       {/* Results mapping */}
+       <AnimatePresence>
+          {outline && (
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="grid grid-cols-1 md:grid-cols-3 gap-8"
+            >
+               {/* Left column: Thumbnail & stats */}
+               <div className="space-y-6 md:col-span-1">
+                  
+                  {/* Thumbnail concept */}
+                  <div className="bg-white dark:bg-slate-900 p-6 rounded-[28px] border border-slate-100 dark:border-slate-820 space-y-4">
+                     <div className="flex items-center gap-2 text-rose-500">
+                        <Monitor size={16} />
+                        <h4 className="text-[10px] font-black uppercase tracking-wider">Thumbnail Art Direction</h4>
+                     </div>
+                     <p className="text-xs text-slate-600 dark:text-slate-450 leading-relaxed font-semibold">
+                       <strong>Visual: </strong> {outline.thumbnailConcept.scenery}
+                     </p>
+                     <div className="p-3 bg-rose-500/5 border border-dashed rounded-lg">
+                       <p className="text-[10px] font-mono font-bold uppercase text-rose-600">Text: "{outline.thumbnailConcept.textOverlay}"</p>
+                     </div>
+                  </div>
+
+                  {/* Monetization possibilities */}
+                  <div className="bg-white dark:bg-slate-900 p-6 rounded-[28px] border border-slate-100 dark:border-slate-820 space-y-4">
+                     <div className="flex items-center gap-2 text-emerald-500">
+                        <DollarSign size={16} />
+                        <h4 className="text-[10px] font-black uppercase tracking-wider">Monetization Avenues</h4>
+                     </div>
+                     <div className="space-y-2">
+                        {outline.monetizationAvenues.map((av: string, idx: number) => (
+                          <div key={idx} className="p-2.5 bg-emerald-500/5 rounded-lg border text-[10px] font-semibold text-slate-655 leading-relaxed">
+                            {av}
+                          </div>
+                        ))}
+                     </div>
+                  </div>
+
+               </div>
+
+               {/* Right column: Outlines */}
+               <div className="md:col-span-2 bg-slate-900 text-white rounded-[32px] p-8 space-y-6 relative overflow-hidden shadow-2xl">
+                  <div className="flex items-center justify-between pb-4 border-b border-white/5">
+                     <div className="flex items-center gap-2 text-red-400">
+                        <Tv size={18} />
+                        <h3 className="text-xs font-black uppercase tracking-widest text-red-400">TIMED SCRIPT OUTLINE</h3>
+                     </div>
+                     
+                     <button
+                       onClick={copyResults}
+                       className="p-3.5 bg-white/5 rounded-2xl hover:bg-white/10 text-slate-350 cursor-pointer"
+                     >
+                       {copied ? <Check size={14} className="text-green-500" /> : <Copy size={14} />}
+                     </button>
+                  </div>
+
+                  <div className="space-y-5">
+                     {outline.videoStructure.map((step: any, idx: number) => (
+                       <div key={idx} className="space-y-1 relative pl-6 border-l-2 border-white/10 pb-2">
+                          <div className="absolute -left-1.5 top-1 w-3.5 h-3.5 rounded-full bg-red-505 bg-red-500 border-4 border-slate-900" />
+                          <h4 className="text-xs font-black uppercase tracking-widest text-slate-400">{step.phase}</h4>
+                          <p className="text-sm font-medium leading-relaxed text-slate-100">{step.goal}</p>
+                       </div>
+                     ))}
+                  </div>
+               </div>
+
+            </motion.div>
+          )}
+       </AnimatePresence>
+
     </div>
   );
 };

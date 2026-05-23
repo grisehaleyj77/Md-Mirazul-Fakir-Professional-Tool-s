@@ -1,222 +1,304 @@
 import React, { useState } from 'react';
-import { Languages, Copy, Check, Loader2, Volume2, Sparkles, Globe2, Trash2 } from 'lucide-react';
-import { GoogleGenAI } from "@google/genai";
+import { Languages, ArrowRight, Volume2, Copy, Check, RotateCcw, AlertCircle, HelpCircle, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ai, GEMINI_API_KEY } from '../../lib/gemini';
 
-type Language = 'bn' | 'en' | 'de';
+const OFFLINE_DICTIONARY: Record<string, Record<string, string>> = {
+  // English key maps
+  'hello': { bn: 'হ্যালো (Hello)', de: 'Hallo' },
+  'how are you': { bn: 'আপনি কেমন আছেন? (Kemon achen?)', de: 'Wie geht es Ihnen?' },
+  'welcome': { bn: 'স্বাগতম (Shagotom)', de: 'Willkommen' },
+  'good morning': { bn: 'শুভ সকাল (Shuvo shokal)', de: 'Guten Morgen' },
+  'good night': { bn: 'শুভ রাত্রি (Shuvo ratri)', de: 'Gute Nacht' },
+  'thank you': { bn: 'ধন্যবাদ (Dhonnobad)', de: 'Danke' },
+  'please': { bn: 'দয়া করে (Doya kore)', de: 'Bitte' },
+  'sorry': { bn: 'দুঃখিত (Dukkhito)', de: 'Es tut mir leid / Entschuldigung' },
+  'yes': { bn: 'হ্যাঁ (Hae)', de: 'Ja' },
+  'no': { bn: 'না (Na)', de: 'Nein' },
+  'goodbye': { bn: 'বিদায় (Biday)', de: 'Auf Wiedersehen' },
+  'i love you': { bn: 'আমি তোমাকে ভালোবাসি (Ami tomake bhalobashi)', de: 'Ich liebe dich' },
+  'friend': { bn: 'বন্ধু (Bondhu)', de: 'Freund' },
+  'family': { bn: 'পরিবার (Poribar)', de: 'Familie' },
+  'water': { bn: 'পানি (Pani)', de: 'Wasser' },
+  'food': { bn: 'খাবার (Khabar)', de: 'Essen' },
+  'book': { bn: 'বই (Boi)', de: 'Buch' },
+  'school': { bn: 'বিদ্যালয় (Biddaloy)', de: 'Schule' },
+  'work': { bn: 'কাজ (Kaj)', de: 'Arbeit' },
+  'world': { bn: 'পৃথিবী (Prithibi)', de: 'Welt' },
+  'beautiful': { bn: 'সুন্দর (Sundor)', de: 'Schön' },
+  'happy': { bn: 'সুখী (Shukhi)', de: 'Glücklich' },
+  'success': { bn: 'সাফল্য (Safollo)', de: 'Erfolg' },
+  'time': { bn: 'সময় (Shomoy)', de: 'Zeit' },
+  'knowledge': { bn: 'জ্ঞান (Gyan)', de: 'Wissen' },
+  'freedom': { bn: 'স্বাধীনতা (Shadhinota)', de: 'Freiheit' },
+  'peace': { bn: 'শান্তি (Shanti)', de: 'Frieden' },
+  'love': { bn: 'ভালোবাসা (Bhalobasha)', de: 'Liebe' },
+  'life': { bn: 'জীবন (Jibon)', de: 'Leben' },
+};
 
-interface TranslationPair {
-  lang: Language;
-  label: string;
-  text: string;
-}
+const OFFLINE_CATEGORIES = [
+  {
+    name: "Common Greetings",
+    items: [
+      { en: "Hello", bn: "হ্যালো (Hello)", de: "Hallo" },
+      { en: "How are you?", bn: "আপনি কেমন আছেন? (Kemon achen?)", de: "Wie geht es Ihnen?" },
+      { en: "Good morning", bn: "শুভ সকাল (Shuvo shokal)", de: "Guten Morgen" },
+      { en: "Good night", bn: "শুভ রাত্রি (Shuvo ratri)", de: "Gute Nacht" },
+      { en: "Goodbye", bn: "বিদায় (Biday)", de: "Auf Wiedersehen" },
+    ]
+  },
+  {
+    name: "Social Phrases",
+    items: [
+      { en: "Thank you", bn: "ধন্যবাদ (Dhonnobad)", de: "Danke" },
+      { en: "Please", bn: "দয়া করে (Doya kore)", de: "Bitte" },
+      { en: "Excuse me", bn: "মাফ করবেন (Maf korben)", de: "Entschuldigung" },
+      { en: "Can you help me?", bn: "আপনি কি আমাকে সাহায্য করতে পারেন? (Sahajjo?)", de: "Können Sie mir helfen?" },
+      { en: "Nice to meet you", bn: "আপনার সাথে দেখা করে ভালো লাগলো (Dekha kore bhalo laglo)", de: "Schön, Sie kennenzulernen" },
+    ]
+  },
+  {
+    name: "Work & Tech Vocab",
+    items: [
+      { en: "Work", bn: "কাজ (Kaj)", de: "Arbeit" },
+      { en: "Computer", bn: "কম্পিউটার (Computer)", de: "Computer" },
+      { en: "Information", bn: "তথ্য (Tottho)", de: "Information" },
+      { en: "Success", bn: "সাফল্য (Safollo)", de: "Erfolg" },
+      { en: "Office", bn: "কার্যালয় (Karjaloy)", de: "Büro" },
+    ]
+  }
+];
 
 export const Translator = () => {
   const [sourceText, setSourceText] = useState('');
-  const [sourceLang, setSourceLang] = useState<Language>('bn');
-  const [results, setResults] = useState<TranslationPair[]>([]);
+  const [targetText, setTargetText] = useState('');
+  const [sourceLang, setSourceLang] = useState<'en' | 'bn' | 'de'>('en');
+  const [targetLang, setTargetLang] = useState<'en' | 'bn' | 'de'>('bn');
   const [isTranslating, setIsTranslating] = useState(false);
-  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
-  const translate = async () => {
-    if (!sourceText || !GEMINI_API_KEY) return;
-    
+  const translateOffline = () => {
+    if (!sourceText.trim()) return;
     setIsTranslating(true);
-    try {
-      const targets: Language[] = sourceLang === 'bn' ? ['en', 'de'] : 
-                         sourceLang === 'en' ? ['bn', 'de'] : ['bn', 'en'];
 
-      const prompt = `Translate the following text from ${getLangName(sourceLang)} to ${targets.map(getLangName).join(' and ')}.
-      Text: "${sourceText}"
+    setTimeout(() => {
+      const cleanInput = sourceText.toLowerCase().trim().replace(/[?.!,;]/g, '');
       
-      Format your response strictly as a JSON object:
-      {
-        "${targets[0]}": "translation here",
-        "${targets[1]}": "translation here"
+      // 1. Check exact dict match
+      if (sourceLang === 'en' && OFFLINE_DICTIONARY[cleanInput]) {
+        const transRecord = OFFLINE_DICTIONARY[cleanInput];
+        if (targetLang === 'bn') {
+          setTargetText(transRecord.bn);
+          setIsTranslating(false);
+          return;
+        } else if (targetLang === 'de') {
+          setTargetText(transRecord.de);
+          setIsTranslating(false);
+          return;
+        } else {
+          setTargetText(sourceText);
+          setIsTranslating(false);
+          return;
+        }
       }
-      Just return the JSON. No other text.`;
 
-      const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: prompt
+      // 2. Perform fallback word-by-word converter
+      const words = sourceText.split(/(\s+)/);
+      const outputParts = words.map(part => {
+        const cleanWord = part.toLowerCase().replace(/[?.!,;]/g, '').trim();
+        if (!cleanWord) return part; // Maintain space or separator
+
+        // Map English to target language
+        if (sourceLang === 'en' && OFFLINE_DICTIONARY[cleanWord]) {
+          const dictVal = OFFLINE_DICTIONARY[cleanWord];
+          const matchedTrans = targetLang === 'bn' ? dictVal.bn : dictVal.de;
+          
+          // Maintain capitalization
+          const isCapital = part[0] === part[0].toUpperCase();
+          return isCapital ? matchedTrans.charAt(0).toUpperCase() + matchedTrans.slice(1) : matchedTrans;
+        }
+
+        // Return word unchanged with brackets fallback notice
+        return part;
       });
 
-      const data = JSON.parse(response.text || '{}');
-      
-      const newResults: TranslationPair[] = targets.map(lang => ({
-        lang,
-        label: getLangName(lang),
-        text: data[lang] || 'Translation unavailable'
-      }));
+      let finalResult = outputParts.join('');
 
-      setResults(newResults);
-    } catch (error) {
-      console.error('Translation failed:', error);
-    } finally {
+      // Add a helpful fallback notice if the input is complex and does not have exact matches
+      const hasAnyMatch = words.some(w => OFFLINE_DICTIONARY[w.toLowerCase().trim()]);
+      if (!hasAnyMatch && sourceText.split(/\s+/).length > 2) {
+        finalResult = finalResult + `\n\n[Linguistic Note: This sentence was parsed offline. Registering common vocab offsets. Try using simpler terms like 'Hello', 'Water', 'Thank you', 'Beautiful', 'School' for exact matches.]`;
+      }
+
+      setTargetText(finalResult);
       setIsTranslating(false);
-    }
+    }, 500);
   };
 
-  const getLangName = (l: Language) => {
-    if (l === 'bn') return 'Bengali';
-    if (l === 'en') return 'English';
-    return 'German';
+  const swapLanguages = () => {
+    const tempLang = sourceLang;
+    setSourceLang(targetLang as any);
+    setTargetLang(tempLang as any);
+    setSourceText(targetText);
+    setTargetText(sourceText);
   };
 
-  const copyToClipboard = (text: string, id: string) => {
-    navigator.clipboard.writeText(text);
-    setCopiedId(id);
-    setTimeout(() => setCopiedId(null), 2000);
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(targetText);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
-  const speak = (text: string, lang: Language) => {
-    const utterance = new SpeechSynthesisUtterance(text);
-    if (lang === 'bn') utterance.lang = 'bn-BD';
-    else if (lang === 'en') utterance.lang = 'en-US';
-    else if (lang === 'de') utterance.lang = 'de-DE';
+  const speakTranslation = () => {
+    if (!targetText || typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    
+    // Convert target mapping codes to engine speech lang tags
+    const langMap = { en: 'en-US', bn: 'bn-BD', de: 'de-DE' };
+    const cleanSpeechText = targetText.replace(/\[.*\]/g, ''); // strip linguistic notes
+    const utterance = new SpeechSynthesisUtterance(cleanSpeechText);
+    utterance.lang = langMap[targetLang] || 'en-US';
     window.speechSynthesis.speak(utterance);
   };
 
   return (
-    <div className="space-y-10 pb-20">
-      {/* Header & Source Selection */}
-      <div className="flex flex-col md:flex-row items-center justify-between gap-6 bg-[var(--glass)] p-6 rounded-[32px] border border-[var(--glass-border)] shadow-sm">
-        <div className="flex items-center gap-4">
-           <div className="w-10 h-10 bg-emerald-100 dark:bg-emerald-500/20 rounded-2xl flex items-center justify-center text-emerald-600">
-              <Globe2 className="w-6 h-6" />
-           </div>
-           <div>
-              <h3 className="text-xs font-black uppercase tracking-widest text-slate-400">Translation Source</h3>
-              <p className="text-[10px] font-bold text-slate-500 uppercase">Select input language</p>
-           </div>
+    <div className="space-y-8" id="translator-suite-root">
+      
+      {/* Brand Header */}
+      <div className="bg-white dark:bg-slate-900 rounded-[32px] p-8 border border-slate-100 dark:border-slate-800 shadow-sm flex items-center gap-4">
+        <div className="p-3 bg-teal-600 rounded-2xl text-white">
+          <Languages size={24} />
         </div>
-
-        <div className="flex items-center gap-2 bg-slate-100 dark:bg-white/5 p-1.5 rounded-2xl border border-slate-200 dark:border-white/5">
-           {(['bn', 'en', 'de'] as Language[]).map(l => (
-             <button 
-              key={l}
-              onClick={() => setSourceLang(l)}
-              className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
-                sourceLang === l ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/20' : 'text-slate-400 hover:text-emerald-500'
-              }`}
-             >
-               {getLangName(l)}
-             </button>
-           ))}
+        <div>
+          <h2 className="text-2xl font-black text-slate-800 dark:text-white tracking-tight">OFFLINE <span className="text-teal-600">TRANSLATOR</span></h2>
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1">Multi-lingual Phrasebook & Vocabulary Converter</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Input Card */}
-        <div className="lg:col-span-5 space-y-6">
-           <div className="bg-white dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-[40px] p-8 shadow-sm space-y-6 relative overflow-hidden">
-              <div className="absolute top-0 right-0 p-8 opacity-5">
-                 <Languages className="w-40 h-40" />
-              </div>
-              
-              <div className="flex items-center justify-between relative z-10">
-                 <h4 className="text-xs font-black uppercase tracking-widest text-emerald-600 flex items-center gap-2">
-                    <Sparkles className="w-4 h-4" />
-                    Source Content
-                 </h4>
-                 {sourceText && (
-                   <button onClick={() => setSourceText('')} className="p-2 text-slate-400 hover:text-red-500 transition-colors">
-                      <Trash2 className="w-4 h-4" />
-                   </button>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        {/* Main Work Area */}
+        <div className="lg:col-span-2 space-y-6">
+          <div className="bg-white dark:bg-slate-900 rounded-[40px] border border-slate-100 dark:border-slate-800 p-6 shadow-sm space-y-6">
+            
+            {/* Language Selection Bar */}
+            <div className="flex items-center justify-between bg-slate-50 dark:bg-slate-800/50 p-2.5 rounded-2xl">
+              <select 
+                value={sourceLang}
+                onChange={(e) => setSourceLang(e.target.value as any)}
+                className="bg-transparent text-sm font-black text-slate-700 dark:text-slate-300 outline-none select-none px-3 cursor-pointer"
+              >
+                <option value="en">English (US)</option>
+                <option value="bn">Bengali (BD)</option>
+                <option value="de">German (DE)</option>
+              </select>
+
+              <button 
+                onClick={swapLanguages}
+                className="p-2.5 bg-white dark:bg-slate-700 rounded-xl hover:scale-110 active:scale-95 transition-all text-slate-500 hover:text-teal-600 shadow-sm cursor-pointer"
+              >
+                <ArrowRight size={16} />
+              </button>
+
+              <select 
+                value={targetLang}
+                onChange={(e) => setTargetLang(e.target.value as any)}
+                className="bg-transparent text-sm font-black text-slate-700 dark:text-slate-300 outline-none select-none px-3 cursor-pointer"
+              >
+                <option value="bn">Bengali (BD)</option>
+                <option value="en">English (US)</option>
+                <option value="de">German (DE)</option>
+              </select>
+            </div>
+
+            {/* Source & Target Panels */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+               
+               <div className="space-y-2">
+                 <textarea 
+                   value={sourceText}
+                   onChange={(e) => setSourceText(e.target.value)}
+                   placeholder={`Type words or phrases to convert... (e.g., Hello, Water, Work, Thank you, goodbye)`}
+                   className="w-full h-72 bg-slate-50 dark:bg-slate-800/30 rounded-3xl p-5 border-2 border-transparent focus:border-teal-500/20 outline-none transition-all text-base font-semibold resize-none text-slate-800 dark:text-slate-100"
+                 />
+               </div>
+
+               <div className="space-y-2 relative">
+                 <div className="w-full h-72 bg-teal-500/5 rounded-3xl p-5 border border-teal-500/10 text-base font-semibold overflow-y-auto overflow-x-hidden text-slate-800 dark:text-slate-100 whitespace-pre-wrap">
+                   {targetText || <span className="text-slate-400 italic font-medium">Converted translation will appear here...</span>}
+                 </div>
+
+                 {targetText && (
+                   <div className="absolute bottom-4 right-4 flex items-center gap-2">
+                      <button 
+                        onClick={speakTranslation}
+                        className="p-3 bg-white dark:bg-slate-800 text-slate-500 hover:text-teal-600 rounded-2xl shadow-md cursor-pointer hover:scale-105 active:scale-95 transition-all border border-slate-100 dark:border-slate-700"
+                      >
+                         <Volume2 size={16} />
+                      </button>
+                      <button 
+                        onClick={copyToClipboard}
+                        className="p-3 bg-white dark:bg-slate-800 text-slate-500 hover:text-teal-600 rounded-2xl shadow-md cursor-pointer hover:scale-105 active:scale-95 transition-all border border-slate-100 dark:border-slate-700"
+                      >
+                         {copied ? <Check size={16} className="text-emerald-500" /> : <Copy size={16} />}
+                      </button>
+                   </div>
                  )}
-              </div>
+               </div>
 
-              <textarea
-                value={sourceText}
-                onChange={(e) => setSourceText(e.target.value)}
-                placeholder={sourceLang === 'bn' ? "এখানে লিখুন..." : sourceLang === 'en' ? "Type here..." : "Hier schreiben..."}
-                className="w-full h-80 bg-transparent border-none outline-none text-2xl font-bold tracking-tight resize-none custom-scrollbar text-[var(--ink)] placeholder:text-slate-200"
-              />
+            </div>
 
-              <div className="flex items-center gap-4 pt-6 border-t border-slate-100 dark:border-white/5 relative z-10">
-                 <button 
-                  onClick={() => speak(sourceText, sourceLang)}
-                  className="p-4 bg-slate-100 dark:bg-white/5 rounded-2xl text-slate-400 hover:text-emerald-600 transition-all"
-                 >
-                    <Volume2 className="w-5 h-5" />
-                 </button>
-                 <button
-                  onClick={translate}
-                  disabled={isTranslating || !sourceText}
-                  className="flex-1 h-14 bg-emerald-600 text-white rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] flex items-center justify-center gap-3 shadow-xl shadow-emerald-600/20 hover:scale-105 active:scale-95 transition-all disabled:opacity-50"
-                 >
-                    {isTranslating ? <Loader2 className="w-5 h-5 animate-spin" /> : <Languages className="w-5 h-5" />}
-                    Convert Master
-                 </button>
-              </div>
-           </div>
+            {/* Action Button */}
+            <button 
+              onClick={translateOffline}
+              disabled={isTranslating || !sourceText.trim()}
+              className="w-full py-5 bg-teal-600 hover:bg-teal-700 text-white rounded-2xl text-xs font-black uppercase tracking-[0.1em] flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50"
+            >
+              {isTranslating ? <Loader2 className="animate-spin" size={16} /> : <Languages size={16} />}
+              {isTranslating ? "Retrieving Phrase mappings..." : "Translate Phrase"}
+            </button>
+
+          </div>
         </div>
 
-        {/* Results Grid */}
-        <div className="lg:col-span-7 space-y-6">
-           <div className="flex items-center justify-between text-slate-400 px-4">
-              <h3 className="text-[10px] font-black uppercase tracking-[0.4em]">Translation Matrix</h3>
-              <div className="flex items-center gap-2">
-                 <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
-                 <span className="text-[9px] font-black uppercase">Live Engine Active</span>
-              </div>
-           </div>
+        {/* Categories Phrasebook Panel */}
+        <div className="space-y-6">
+          <div className="bg-white dark:bg-slate-900 rounded-[40px] border border-slate-100 dark:border-slate-800 p-6 shadow-sm space-y-6">
+             <div className="flex items-center gap-2">
+                <HelpCircle size={18} className="text-teal-600" />
+                <h3 className="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300">Offline Phrasebook Library</h3>
+             </div>
 
-           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <AnimatePresence mode="popLayout">
-                 {results.length > 0 ? (
-                    results.map((res) => (
-                       <motion.div 
-                        key={res.lang}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="bg-slate-900 border border-white/5 p-8 rounded-[40px] text-white shadow-2xl space-y-6 relative group flex flex-col"
-                       >
-                          <div className="flex items-center justify-between">
-                             <div className="space-y-1">
-                                <p className="text-[9px] font-black uppercase tracking-widest text-slate-500">Target Language</p>
-                                <h5 className="text-sm font-black italic tracking-tighter uppercase text-emerald-400">{res.label}</h5>
-                             </div>
-                             <div className="flex items-center gap-2">
-                                <button 
-                                  onClick={() => speak(res.text, res.lang)}
-                                  className="p-3 bg-white/5 rounded-xl text-slate-400 hover:text-white transition-all shadow-lg"
-                                >
-                                   <Volume2 className="w-4 h-4" />
-                                </button>
-                             </div>
-                          </div>
-
-                          <div className="flex-1 bg-white/5 rounded-3xl p-6 min-h-[160px] max-h-[160px] overflow-y-auto custom-scrollbar border border-white/5">
-                             <p className="text-lg font-bold leading-relaxed">{res.text}</p>
-                          </div>
-
-                          <button 
-                            onClick={() => copyToClipboard(res.text, res.lang)}
-                            className={`w-full h-12 rounded-2xl font-black text-[9px] uppercase tracking-widest flex items-center justify-center gap-2 transition-all ${
-                              copiedId === res.lang ? 'bg-emerald-600 text-white' : 'bg-white/10 text-slate-300 hover:bg-white/20'
-                            }`}
-                          >
-                             {copiedId === res.lang ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                             {copiedId === res.lang ? 'Copied' : 'Fast Copy'}
-                          </button>
-                       </motion.div>
-                    ))
-                 ) : (
-                    <div className="md:col-span-2 h-[400px] flex flex-col items-center justify-center border border-dashed border-slate-200 dark:border-white/10 rounded-[48px] space-y-6 opacity-20">
-                       <Globe2 className="w-16 h-16" />
-                       <div className="text-center space-y-2">
-                          <p className="text-sm font-black uppercase tracking-[0.4em]">Matrix Idle</p>
-                          <p className="text-[10px] font-bold uppercase tracking-widest leading-relaxed">Enter content in the source monitor to begin<br/>the multi-lingual conversion process.</p>
-                       </div>
-                    </div>
-                 )}
-              </AnimatePresence>
-           </div>
+             <div className="space-y-6 max-h-[460px] overflow-y-auto pr-1">
+                {OFFLINE_CATEGORIES.map((cat, idx) => (
+                  <div key={idx} className="space-y-3">
+                     <p className="text-[10px] font-black text-teal-600 uppercase tracking-widest">{cat.name}</p>
+                     
+                     <div className="space-y-2">
+                       {cat.items.map((item, itemIdx) => (
+                         <div 
+                           key={itemIdx}
+                           onClick={() => { setSourceText(item.en); setSourceLang('en'); }}
+                           className="p-3 bg-slate-50 dark:bg-slate-800/40 rounded-xl hover:bg-teal-50 dark:hover:bg-teal-950/20 border border-transparent hover:border-teal-500/10 transition-all cursor-pointer text-left"
+                         >
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs font-black text-slate-700 dark:text-slate-300">{item.en}</span>
+                              <span className="text-[9px] font-mono text-slate-400">Click to load</span>
+                            </div>
+                            <div className="flex gap-4 mt-1.5 pt-1.5 border-t border-slate-100 dark:border-white/5 text-[10px] text-slate-500 font-medium">
+                               <span>bn: <strong className="text-slate-600 dark:text-slate-400">{item.bn}</strong></span>
+                               <span>de: <strong className="text-slate-600 dark:text-slate-400">{item.de}</strong></span>
+                            </div>
+                         </div>
+                       ))}
+                     </div>
+                  </div>
+                ))}
+             </div>
+          </div>
         </div>
+
       </div>
+
     </div>
   );
 };
-

@@ -3,637 +3,306 @@ import {
   Music, 
   Play, 
   Pause, 
-  SkipBack, 
-  SkipForward, 
+  RotateCcw, 
   Volume2, 
-  Plus, 
-  Search, 
-  Layout, 
-  Library, 
-  Compass, 
-  Flame, 
-  MoreHorizontal, 
-  Heart, 
-  Share2, 
-  Download, 
   Sparkles, 
   Zap, 
-  Loader2,
-  Mic2,
-  RotateCcw,
-  Settings2,
-  Keyboard,
-  Info,
-  ExternalLink
+  Info, 
+  Settings2, 
+  Keyboard
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { GoogleGenAI, Modality } from "@google/genai";
-import { GEMINI_API_KEY } from '../../lib/gemini';
+import { motion } from 'framer-motion';
 
-interface Song {
-  id: string;
-  title: string;
-  style: string;
-  lyrics: string;
-  audioUrl?: string;
-  duration: string;
-  createdAt: Date;
-  status: 'generating' | 'ready' | 'error';
+interface SoundPattern {
+  name: string;
+  notes: number[]; // Frequencies
+  color: string;
 }
 
+const SOUND_PATTERNS: Record<string, SoundPattern[]> = {
+  'Electronic Synth': [
+    { name: 'Power Chord', notes: [261.63, 329.63, 392.00, 523.25], color: 'from-blue-500 to-cyan-500' }, // C4, E4, G4, C5
+    { name: 'Night Drive Pentatonic', notes: [293.66, 349.23, 392.00, 440.00, 523.25], color: 'from-indigo-500 to-purple-500' }, // D4, F4, G4, A4, C5
+    { name: 'Future Bass Hook', notes: [329.63, 440.00, 493.88, 587.33, 659.25], color: 'from-pink-500 to-rose-500' }, // E4, A4, B4, D5, E5
+  ],
+  'Lo-Fi Chords': [
+    { name: 'Cosmic Drift Minor9', notes: [220.00, 261.63, 329.63, 392.00, 493.88], color: 'from-amber-400 to-orange-500' }, // A3, C4, E4, G4, B4
+    { name: 'Chill Out Solitude', notes: [261.63, 311.13, 392.00, 466.16], color: 'from-teal-400 to-emerald-500' }, // C4, Eb4, G4, Bb4
+    { name: 'Warm Sunset Major7', notes: [349.23, 440.00, 523.25, 587.33], color: 'from-yellow-400 to-pink-500' }, // F4, A4, C5, D5
+  ]
+};
+
 export const MusicStudioPro = () => {
-  const [activeTab, setActiveTab] = useState<'create' | 'library' | 'explore'>('create');
-  const [prompt, setPrompt] = useState('');
-  const [isCustomMode, setIsCustomMode] = useState(false);
-  const [customLyrics, setCustomLyrics] = useState('');
-  const [customStyle, setCustomStyle] = useState('');
-  const [customTitle, setCustomTitle] = useState('');
-  const [songs, setSongs] = useState<Song[]>([]);
-  const [currentSong, setCurrentSong] = useState<Song | null>(null);
+  const [synthType, setSynthType] = useState<'sawtooth' | 'sine' | 'triangle' | 'square'>('triangle');
+  const [bpm, setBpm] = useState(120);
+  const [genre, setGenre] = useState('Electronic Synth');
   const [isPlaying, setIsPlaying] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [hasApiKey, setHasApiKey] = useState<boolean | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [statusText, setStatusText] = useState('Workspace Ready');
+  const [selectedNotes, setSelectedNotes] = useState<number[]>([261.63, 329.63, 392.00]); // Default C-major
+
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const activeOscillatorsRef = useRef<OscillatorNode[]>([]);
+  const sequencerIntervalRef = useRef<any>(null);
 
   useEffect(() => {
-    const checkKey = async () => {
-      // @ts-ignore
-      const selected = await window.aistudio?.hasSelectedApiKey();
-      setHasApiKey(!!selected);
+    // Cleanup on unmount
+    return () => {
+      stopBeats();
     };
-    checkKey();
   }, []);
 
-  const handleConnectKey = async () => {
-    // @ts-ignore
-    await window.aistudio?.openSelectKey();
-    setHasApiKey(true);
+  const initAudio = () => {
+    if (!audioCtxRef.current) {
+      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      if (AudioContextClass) {
+        audioCtxRef.current = new AudioContextClass();
+      }
+    }
+    if (audioCtxRef.current && audioCtxRef.current.state === 'suspended') {
+      audioCtxRef.current.resume();
+    }
   };
 
-  const generateSong = async () => {
-    if (!prompt && !isCustomMode) return;
-    
-    setLoading(true);
-    setError(null);
-    
-    const newSong: Song = {
-      id: Math.random().toString(36).substr(2, 9),
-      title: isCustomMode ? (customTitle || "Untitled Clip") : "Composing...",
-      style: isCustomMode ? customStyle : "AI Concept",
-      lyrics: isCustomMode ? customLyrics : "Synthesizing theme...",
-      duration: "0:30",
-      createdAt: new Date(),
-      status: 'generating'
-    };
-
-    setSongs(prev => [newSong, ...prev]);
-    setCurrentSong(newSong);
-
+  const playSingleTone = (frequency: number) => {
     try {
-      // Use the Lyria Pro model for full-length music generation
-      // This requires a paid API key or platform-enabled access
-      const genAI = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
-      
-      const promptText = isCustomMode 
-        ? `Generate a full-length high-quality track with these lyrics: "${customLyrics}". Style: ${customStyle}. Title: ${customTitle}`
-        : `Generate a full-length high-quality ${prompt} track with catchy lyrics and professional production.`;
+      initAudio();
+      const ctx = audioCtxRef.current;
+      if (!ctx) return;
 
-      const response = await genAI.models.generateContentStream({
-        model: "lyria-3-pro-preview",
-        contents: promptText,
-        config: {
-          responseModalities: [Modality.AUDIO],
-        }
-      });
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
 
-      let audioBase64 = "";
-      let generatedLyrics = "";
-      let mimeType = "audio/wav";
+      osc.type = synthType;
+      osc.frequency.setValueAtTime(frequency, ctx.currentTime);
 
-      for await (const chunk of response) {
-        const parts = chunk.candidates?.[0]?.content?.parts;
-        if (!parts) continue;
-        for (const part of parts) {
-          if (part.inlineData?.data) {
-            if (!audioBase64 && part.inlineData.mimeType) {
-              mimeType = part.inlineData.mimeType;
-            }
-            audioBase64 += part.inlineData.data;
-          }
-          if (part.text && !generatedLyrics) {
-            generatedLyrics = part.text;
-          }
-        }
-      }
+      // Smooth volume envelope to prevent clicking
+      gain.gain.setValueAtTime(0, ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.3, ctx.currentTime + 0.05);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.8);
 
-      if (!audioBase64) {
-        throw new Error("No audio data generated by AI");
-      }
+      osc.connect(gain);
+      gain.connect(ctx.destination);
 
-      // Decode base64 audio into a playable Blob URL
-      const binary = atob(audioBase64);
-      const bytes = new Uint8Array(binary.length);
-      for (let i = 0; i < binary.length; i++) {
-        bytes[i] = binary.charCodeAt(i);
-      }
-      const blob = new Blob([bytes], { type: mimeType });
-      const audioUrl = URL.createObjectURL(blob);
-
-      setSongs(prev => prev.map(s => s.id === newSong.id ? {
-        ...s,
-        title: isCustomMode ? (customTitle || "Generated Track") : "AI Composition",
-        lyrics: generatedLyrics || s.lyrics,
-        audioUrl,
-        status: 'ready'
-      } : s));
-
-      setCurrentSong({
-        ...newSong,
-        audioUrl,
-        lyrics: generatedLyrics || newSong.lyrics,
-        status: 'ready'
-      });
-      
-      // Auto-load and play when ready
-      setTimeout(() => {
-        if (audioRef.current) {
-          audioRef.current.load();
-          audioRef.current.play().catch(e => console.log("Auto-play blocked by browser"));
-          setIsPlaying(true);
-        }
-      }, 500);
-
-    } catch (err: any) {
-      console.error(err);
-      // Fallback for demo purposes if API fails
-      setSongs(prev => prev.map(s => s.id === newSong.id ? { 
-        ...s, 
-        title: "Digital Soul Demo",
-        style: "Ambient",
-        lyrics: "Lost in the algorithm,\nSearching for a rhythm.\nDigital heartbeat,\nSystem override.",
-        audioUrl: 'https://cdn.pixabay.com/audio/2022/03/10/audio_f523c6f14a.mp3',
-        status: 'ready' 
-      } : s));
-    } finally {
-      setLoading(false);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.8);
+    } catch (e) {
+      console.error('Tone synthesis failed:', e);
     }
   };
 
-  const downloadSong = async (url: string, title: string) => {
+  const startBeats = () => {
     try {
-      const response = await fetch(url);
-      const blob = await response.blob();
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = `${title.replace(/\s+/g, '_')}_MusicStudio.mp3`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    } catch (err) {
-      // Fallback if CORS fails
-      window.open(url, '_blank');
+      initAudio();
+      const ctx = audioCtxRef.current;
+      if (!ctx) return;
+
+      setIsPlaying(true);
+      setStatusText('Looping Sequencer Active');
+
+      let step = 0;
+      const stepDuration = 60 / bpm / 2; // Eighth notes
+
+      sequencerIntervalRef.current = setInterval(() => {
+        if (!ctx) return;
+        
+        // Dynamic pitch rotation based on step index for melodic sequences
+        const frequencyToPlay = selectedNotes[step % selectedNotes.length];
+        
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.type = synthType;
+        osc.frequency.setValueAtTime(frequencyToPlay, ctx.currentTime);
+
+        // Fun arpeggio effects: higher steps produce brief pitch offsets
+        if (step % 4 === 2) {
+          osc.frequency.setValueAtTime(frequencyToPlay * 1.5, ctx.currentTime + 0.1);
+        }
+
+        gain.gain.setValueAtTime(0, ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.2, ctx.currentTime + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + stepDuration - 0.02);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start();
+        osc.stop(ctx.currentTime + stepDuration);
+
+        step++;
+      }, stepDuration * 1000);
+
+    } catch (e) {
+      console.error('Audio synthesizer launch aborted:', e);
+      setStatusText('Engine Error');
     }
   };
 
-  const [likedSongs, setLikedSongs] = useState<Set<string>>(new Set());
-  const toggleLike = (id: string) => {
-    setLikedSongs(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
+  const stopBeats = () => {
+    if (sequencerIntervalRef.current) {
+      clearInterval(sequencerIntervalRef.current);
+      sequencerIntervalRef.current = null;
+    }
+    setIsPlaying(false);
+    setStatusText('Workspace Ready');
   };
 
-  const togglePlay = () => {
-    if (audioRef.current) {
-      if (isPlaying) audioRef.current.pause();
-      else audioRef.current.play();
-      setIsPlaying(!isPlaying);
+  const toggleSequencer = () => {
+    if (isPlaying) {
+      stopBeats();
+    } else {
+      startBeats();
     }
+  };
+
+  const selectPattern = (pattern: SoundPattern) => {
+    setSelectedNotes(pattern.notes);
+    setStatusText(`Loaded ${pattern.name}`);
+    // Play full chord preview once
+    pattern.notes.forEach(freq => playSingleTone(freq));
   };
 
   return (
-    <div className="flex h-screen bg-[#0a0a0a] text-white overflow-hidden font-sans selection:bg-purple-500/30">
-      {/* Sidebar */}
-      <div className="w-64 border-r border-white/5 bg-[#0f0f0f] flex flex-col p-6 hidden lg:flex">
-        <div className="flex items-center gap-3 mb-12">
-          <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-pink-600 rounded-xl flex items-center justify-center shadow-lg shadow-purple-500/20">
-            <Music className="w-6 h-6 text-white" />
+    <div className="max-w-4xl mx-auto space-y-8 pb-32" id="music-studio-root">
+      
+      {/* Brand Header */}
+      <div className="bg-white dark:bg-slate-900 rounded-[32px] p-8 border border-slate-100 dark:border-slate-800 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="flex items-center gap-4">
+          <div className="p-3 bg-rose-600 rounded-2xl text-white shadow-lg shadow-rose-200 dark:shadow-none">
+            <Music size={24} />
           </div>
-          <h1 className="text-xl font-black italic tracking-tighter uppercase">Suno <span className="text-purple-500">Flux</span></h1>
+          <div>
+            <h2 className="text-2xl font-black text-slate-800 dark:text-white tracking-tight">OFFLINE AUDIO <span className="text-rose-600">PRESETS</span></h2>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1 italic">Native Web Audio Synth & Beat Sequencer</p>
+          </div>
         </div>
 
-        <nav className="space-y-2 flex-grow">
-          <button 
-            onClick={() => setActiveTab('create')}
-            className={`w-full flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-black uppercase tracking-widest transition-all ${
-              activeTab === 'create' ? 'bg-white/10 text-white border border-white/10' : 'text-slate-500 hover:text-white hover:bg-white/5'
-            }`}
-          >
-            <Plus className="w-5 h-5 text-purple-500" />
-            Create
-          </button>
-          <button 
-            onClick={() => setActiveTab('explore')}
-            className={`w-full flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-black uppercase tracking-widest transition-all ${
-              activeTab === 'explore' ? 'bg-white/10 text-white border border-white/10' : 'text-slate-500 hover:text-white hover:bg-white/5'
-            }`}
-          >
-            <Compass className="w-5 h-5 text-pink-500" />
-            Explore
-          </button>
-          <button 
-            onClick={() => setActiveTab('library')}
-            className={`w-full flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-black uppercase tracking-widest transition-all ${
-              activeTab === 'library' ? 'bg-white/10 text-white border border-white/10' : 'text-slate-500 hover:text-white hover:bg-white/5'
-            }`}
-          >
-            <Library className="w-5 h-5 text-amber-500" />
-            Library
-          </button>
-        </nav>
-
-        <div className="mt-auto space-y-4 pt-8 border-t border-white/5">
-           <div className="bg-white/5 p-4 rounded-2xl space-y-2 border border-white/5">
-              <p className="text-[10px] font-black uppercase text-slate-500">Credits Remaining</p>
-              <div className="flex justify-between items-end">
-                 <p className="text-xl font-black italic tracking-tighter">Unlimited <span className="text-[10px] text-slate-500 not-italic uppercase">/ Community</span></p>
-              </div>
-           </div>
-           <p className="px-4 text-[9px] font-bold text-slate-600 uppercase tracking-widest text-center">Powered by Suno Flux AI</p>
-        </div>
+        <button 
+          onClick={stopBeats}
+          className="px-6 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-750 hover:bg-slate-100 text-slate-500 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:text-rose-600 transition-colors cursor-pointer"
+        >
+          Reset Engine
+        </button>
       </div>
 
-      {/* Main Content */}
-      <div className="flex-grow overflow-y-auto pb-48">
-        <div className="max-w-6xl mx-auto p-8 lg:p-12">
-          
-          <AnimatePresence mode="wait">
-            {activeTab === 'create' && (
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                className="space-y-12"
-              >
-                {/* Header */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                  <div className="space-y-2">
-                    <h2 className="text-4xl md:text-5xl font-black italic uppercase tracking-tighter leading-none">AI Music <span className="text-purple-500">Studio</span></h2>
-                    <p className="text-xs font-black uppercase tracking-[0.4em] text-slate-500">Professional Lyria Generation Suite</p>
-                  </div>
-                  
-                  <div className="flex items-center gap-3">
-                    <button 
-                      onClick={() => setIsCustomMode(!isCustomMode)}
-                      className={`flex items-center gap-3 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${
-                        isCustomMode ? 'bg-purple-600 text-white' : 'bg-white/5 text-slate-400 hover:text-white border border-white/5'
-                      }`}
-                    >
-                      <Settings2 className="w-4 h-4" />
-                      Custom Mode
-                    </button>
-                  </div>
-                </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        
+        {/* Synth Settings */}
+        <div className="bg-white dark:bg-slate-900 rounded-[32px] p-6 border border-slate-100 dark:border-slate-800 space-y-6">
+           <div className="flex items-center gap-2">
+              <Settings2 size={18} className="text-rose-500" />
+              <h3 className="text-xs font-black uppercase tracking-wider text-slate-800 dark:text-white">Oscillator Engine</h3>
+           </div>
 
-                {/* Input Area */}
-                <div className="bg-[#0f0f0f] border border-white/5 rounded-[40px] p-8 shadow-2xl relative group overflow-hidden">
-                   <div className="absolute inset-0 bg-gradient-to-br from-purple-600/5 to-transparent pointer-events-none" />
-                   
-                   {!isCustomMode ? (
-                     <div className="space-y-6">
-                       <div className="relative">
-                          <textarea 
-                            value={prompt}
-                            onChange={(e) => setPrompt(e.target.value)}
-                            placeholder="Describe the song you want to create (e.g. 'A high-energy synthpop track about space exploration with a deep bassline and airy vocals')"
-                            className="w-full bg-black/40 border border-white/10 rounded-3xl p-8 min-h-[200px] text-lg font-bold placeholder:text-slate-700 focus:outline-none focus:border-purple-500/50 transition-all resize-none"
-                          />
-                          <div className="absolute bottom-6 right-8 flex items-center gap-4">
-                             <div className="flex items-center gap-2 text-slate-500">
-                                <Keyboard className="w-4 h-4" />
-                                <span className="text-[10px] font-black uppercase tracking-widest">Enter to Generate</span>
-                             </div>
-                          </div>
-                       </div>
-                       
-                       <div className="flex flex-wrap items-center gap-3">
-                          <span className="text-[10px] font-black uppercase tracking-widest text-slate-600 mr-2">Try These:</span>
-                          {['Cyberpunk Techno', 'Smooth Jazz', 'Ambient Dreamscape', 'Hard Rock Anthem'].map(style => (
-                            <button 
-                              key={style}
-                              onClick={() => setPrompt(style)}
-                              className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/5 rounded-xl text-[10px] font-black uppercase transition-all"
-                            >
-                              {style}
-                            </button>
-                          ))}
-                       </div>
-                     </div>
-                   ) : (
-                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div className="space-y-4">
-                           <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Lyrics Configuration</p>
-                           <textarea 
-                            value={customLyrics}
-                            onChange={(e) => setCustomLyrics(e.target.value)}
-                            placeholder="Paste your lyrics here..."
-                            className="w-full bg-black/40 border border-white/10 rounded-2xl p-6 min-h-[300px] font-mono text-sm placeholder:text-slate-700 focus:outline-none focus:border-purple-500/30 transition-all resize-none"
-                           />
-                           <button className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-purple-400 hover:text-purple-300 transition-colors">
-                              <Sparkles className="w-3 h-3" />
-                              Auto-Generate Lyrics
-                           </button>
-                        </div>
-                        <div className="space-y-8">
-                           <div className="space-y-4">
-                              <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Musical Style</p>
-                              <textarea 
-                                value={customStyle}
-                                onChange={(e) => setCustomStyle(e.target.value)}
-                                placeholder="Style (e.g. 90s Grunge, Melodic House)"
-                                className="w-full bg-black/40 border border-white/10 rounded-2xl p-6 min-h-[100px] text-sm font-bold focus:outline-none focus:border-purple-500/30 transition-all resize-none"
-                              />
-                           </div>
-                           <div className="space-y-4">
-                              <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Track Title</p>
-                              <input 
-                                value={customTitle}
-                                onChange={(e) => setCustomTitle(e.target.value)}
-                                placeholder="Enter title..."
-                                className="w-full h-14 bg-black/40 border border-white/10 rounded-2xl px-6 font-bold focus:outline-none focus:border-purple-500/30 transition-all"
-                              />
-                           </div>
-                           <div className="p-6 bg-purple-500/5 rounded-2xl border border-purple-500/10 flex items-start gap-4">
-                              <Info className="w-5 h-5 text-purple-500 mt-1" />
-                              <p className="text-[10px] font-bold text-slate-500 leading-relaxed uppercase tracking-wider">Custom mode uses double credits for full-length processing and precise linguistic mapping.</p>
-                           </div>
-                        </div>
-                     </div>
-                   )}
-
-                   <div className="mt-12 flex flex-col md:flex-row items-center justify-between gap-6 pt-8 border-t border-white/5">
-                      <div className="flex items-center gap-6">
-                         <div className="flex flex-col">
-                            <span className="text-[9px] font-black uppercase text-slate-500">Model Engine</span>
-                            <span className="text-xs font-black uppercase italic text-white tracking-widest">Lyria Pro v3.1</span>
-                         </div>
-                         <div className="w-px h-8 bg-white/5" />
-                         <div className="flex flex-col">
-                            <span className="text-[9px] font-black uppercase text-slate-500">Output Quality</span>
-                            <span className="text-xs font-black uppercase italic text-white tracking-widest">320kbps Lossless</span>
-                         </div>
-                      </div>
-
-                      <button 
-                        onClick={generateSong}
-                        disabled={loading || (!prompt && !isCustomMode)}
-                        className="w-full md:w-auto h-16 px-12 bg-gradient-to-r from-purple-600 to-pink-600 rounded-[30px] font-black text-xs uppercase tracking-[0.3em] transition-all hover:scale-105 active:scale-95 disabled:opacity-50 flex items-center justify-center gap-4 shadow-xl shadow-purple-600/20 group"
+           <div className="space-y-4">
+              <div className="space-y-2">
+                 <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Waveform Profile</label>
+                 <div className="grid grid-cols-2 gap-2">
+                    {(['triangle', 'sine', 'sawtooth', 'square'] as const).map((w) => (
+                      <button
+                        key={w}
+                        onClick={() => setSynthType(w)}
+                        className={`py-3 rounded-xl text-[10px] font-black uppercase tracking-wider border-2 transition-all cursor-pointer ${synthType === w ? 'bg-rose-50 dark:bg-rose-950/20 text-rose-600 border-rose-500/20' : 'bg-transparent border-slate-50 dark:border-slate-800 text-slate-500'}`}
                       >
-                         {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Zap className="w-5 h-5 fill-current group-hover:scale-125 transition-transform" />}
-                         Generate Track
+                        {w}
                       </button>
-                   </div>
-                </div>
-
-                {error && (
-                  <motion.div 
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="p-6 bg-red-500/10 border border-red-500/20 rounded-3xl flex items-center justify-between gap-6"
-                  >
-                    <div className="flex items-center gap-4 text-red-500">
-                      <Zap className="w-6 h-6 rotate-180" />
-                      <p className="text-xs font-black uppercase tracking-widest">{error}</p>
-                    </div>
-                  </motion.div>
-                )}
-
-                {/* Recent Tracks */}
-                <div className="grid grid-cols-1 xl:grid-cols-3 gap-12">
-                  <div className="xl:col-span-2 space-y-6">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-xl font-black italic uppercase tracking-tighter">Recent <span className="text-purple-500">Creations</span></h3>
-                      <button className="text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-white transition-colors">View All</button>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {songs.map(song => (
-                        <div 
-                          key={song.id}
-                          className={`p-6 rounded-[32px] bg-[#0f0f0f] border border-white/5 hover:border-purple-500/30 transition-all group flex items-center gap-6 cursor-pointer ${currentSong?.id === song.id ? 'border-purple-500 shadow-xl shadow-purple-500/10' : ''}`}
-                          onClick={() => setCurrentSong(song)}
-                        >
-                          <div className="w-20 h-20 bg-black rounded-2xl relative overflow-hidden flex-shrink-0 border border-white/5">
-                             <div className="absolute inset-0 bg-gradient-to-br from-purple-600/20 to-pink-600/20" />
-                             <div className="absolute inset-0 flex items-center justify-center">
-                                {song.status === 'generating' ? (
-                                  <Loader2 className="w-8 h-8 text-purple-500 animate-spin" />
-                                ) : (
-                                  <Music className="w-8 h-8 text-white/20 group-hover:text-purple-500/40 transition-colors" />
-                                )}
-                             </div>
-                          </div>
-                          
-                          <div className="flex-grow space-y-1">
-                             <h4 className="font-black uppercase tracking-tight group-hover:text-purple-500 transition-colors line-clamp-1">{song.title}</h4>
-                             <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{song.style}</p>
-                             <div className="flex items-center gap-3 pt-2">
-                                <span className="text-[9px] font-black text-slate-600 bg-white/5 px-2 py-0.5 rounded italic">128 BPM</span>
-                                <span className="text-[9px] font-black text-slate-600 bg-white/5 px-2 py-0.5 rounded italic uppercase">{song.duration}</span>
-                             </div>
-                          </div>
-
-                          <div className="flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                             <button 
-                               onClick={(e) => { e.stopPropagation(); toggleLike(song.id); }}
-                               className={`p-2 hover:bg-white/5 rounded-lg transition-colors ${likedSongs.has(song.id) ? 'text-pink-500' : 'text-slate-500 hover:text-white'}`}
-                             >
-                               <Heart className={`w-4 h-4 ${likedSongs.has(song.id) ? 'fill-current' : ''}`} />
-                             </button>
-                             <button className="p-2 hover:bg-white/5 rounded-lg text-slate-500 hover:text-white"><MoreHorizontal className="w-4 h-4" /></button>
-                          </div>
-                        </div>
-                      ))}
-                      
-                      {songs.length === 0 && (
-                        <div className="col-span-full h-48 border-2 border-dashed border-white/5 rounded-[40px] flex flex-col items-center justify-center opacity-30">
-                           <RotateCcw className="w-8 h-8 mb-4" />
-                           <p className="text-[10px] font-black uppercase tracking-widest">No tracks created yet</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Lyrics Display */}
-                  <div className="space-y-6">
-                    <h3 className="text-xl font-black italic uppercase tracking-tighter">Current <span className="text-purple-500">Lyrics</span></h3>
-                    <div className="bg-[#0f0f0f] border border-white/5 rounded-[32px] p-8 h-[600px] overflow-y-auto relative custom-scrollbar">
-                      {currentSong ? (
-                        <div className="space-y-6">
-                          <div className="space-y-2 pb-6 border-b border-white/5">
-                            <h4 className="text-2xl font-black italic uppercase tracking-tighter text-white">{currentSong.title}</h4>
-                            <p className="text-[10px] font-bold text-purple-500 uppercase tracking-[0.2em]">{currentSong.style} Edition</p>
-                          </div>
-                          <div className="whitespace-pre-line text-slate-400 font-medium leading-relaxed text-sm">
-                            {currentSong.lyrics}
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="h-full flex flex-col items-center justify-center text-center space-y-4 opacity-30">
-                          <Mic2 className="w-12 h-12" />
-                          <p className="text-[10px] font-black uppercase tracking-[0.2em]">Select a track to view lyrics</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-
-            {activeTab === 'explore' && (
-              <motion.div 
-                 initial={{ opacity: 0, scale: 0.95 }}
-                 animate={{ opacity: 1, scale: 1 }}
-                 exit={{ opacity: 0, scale: 0.95 }}
-                 className="space-y-12"
-              >
-                 <div className="relative h-96 rounded-[56px] overflow-hidden group">
-                    <img 
-                      src="https://images.unsplash.com/photo-1514525253361-bee8d4a433f2?auto=format&fit=crop&q=80&w=2000" 
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-[2000ms]" 
-                      alt="Explore Banner"
-                      referrerPolicy="no-referrer"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/40 to-transparent" />
-                    <div className="absolute bottom-12 left-12 space-y-4">
-                       <div className="flex items-center gap-3">
-                          <Flame className="w-6 h-6 text-orange-500" />
-                          <span className="text-xs font-black uppercase tracking-[0.4em] text-white/60">Trending Global</span>
-                       </div>
-                       <h3 className="text-6xl font-black italic uppercase tracking-tighter leading-none">Midnight <span className="text-purple-500">Echoes</span></h3>
-                       <p className="text-sm font-bold text-slate-400 uppercase tracking-widest max-w-md">The most generated style this week. Explore how AI is redefining the lo-fi aesthetic.</p>
-                       <button className="px-10 py-4 bg-white text-black rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 transition-all">Listen Now</button>
-                    </div>
-                 </div>
-
-                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    {[1,2,3,4,5,6].map(i => (
-                      <div key={i} className="space-y-4 group cursor-pointer">
-                         <div className="aspect-square bg-white/5 rounded-[40px] overflow-hidden relative border border-white/5 group-hover:border-purple-500/30 transition-all">
-                            <img 
-                              src={`https://loremflickr.com/800/800/music,abstract?lock=${i + 100}`} 
-                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-60 group-hover:opacity-100" 
-                              alt="Album"
-                            />
-                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                               <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-2xl scale-75 group-hover:scale-100 transition-transform">
-                                  <Play className="w-8 h-8 text-black fill-current translate-x-0.5" />
-                               </div>
-                            </div>
-                         </div>
-                         <div>
-                            <h4 className="font-black uppercase tracking-tight group-hover:text-purple-500 transition-colors">Digital Soul #{i}</h4>
-                            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Synthwave Fusion</p>
-                         </div>
-                      </div>
                     ))}
                  </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+              </div>
+
+              <div className="space-y-2">
+                 <div className="flex justify-between items-center">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Tempo Speed (BPM)</label>
+                    <span className="text-[11px] font-mono font-black text-rose-500">{bpm}</span>
+                 </div>
+                 <input 
+                   type="range" min={60} max={200} step={5} value={bpm} 
+                   onChange={(e) => {
+                     setBpm(Number(e.target.value));
+                     if (isPlaying) {
+                       // Restart playing with new BPM
+                       stopBeats();
+                       setTimeout(startBeats, 100);
+                     }
+                   }}
+                   className="w-full accent-rose-500"
+                 />
+              </div>
+
+              <div className="space-y-2 pt-2">
+                 <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Synthesis Genre</label>
+                 <select 
+                   value={genre} 
+                   onChange={(e) => setGenre(e.target.value)}
+                   className="w-full bg-slate-50 dark:bg-slate-850 p-3.5 border-none rounded-xl text-xs font-bold text-slate-600 dark:text-slate-350 focus:outline-none"
+                 >
+                   <option value="Electronic Synth">Electronic Synth</option>
+                   <option value="Lo-Fi Chords">Lo-Fi Acoustic / Chill</option>
+                 </select>
+              </div>
+           </div>
         </div>
-      </div>
 
-      {/* Player Bar */}
-      <AnimatePresence>
-        {currentSong && (
-          <motion.div 
-            initial={{ y: 100 }}
-            animate={{ y: 0 }}
-            className="fixed bottom-0 left-0 right-0 h-32 bg-[#121212]/90 backdrop-blur-2xl border-t border-white/10 z-[100] px-8 flex items-center justify-between"
-          >
-            {/* Song Info */}
-            <div className="flex items-center gap-6 w-1/4">
-               <div className="w-20 h-20 bg-black rounded-2xl border border-white/10 overflow-hidden">
-                  <div className="w-full h-full bg-gradient-to-br from-purple-600 to-pink-600 opacity-40 animate-pulse" />
-               </div>
-               <div>
-                  <h4 className="font-black uppercase tracking-tight truncate max-w-[200px]">{currentSong.title}</h4>
-                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{currentSong.style}</p>
-               </div>
-               <button 
-                onClick={() => toggleLike(currentSong.id)}
-                className={`transition-colors ml-4 ${likedSongs.has(currentSong.id) ? 'text-pink-500' : 'text-slate-500 hover:text-pink-500'}`}
-               >
-                 <Heart className={`w-5 h-5 ${likedSongs.has(currentSong.id) ? 'fill-current' : ''}`} />
-               </button>
-            </div>
+        {/* Melodic Sequences / Theme presets */}
+        <div className="md:col-span-2 bg-white dark:bg-slate-900 rounded-[32px] p-6 border border-slate-100 dark:border-slate-800 space-y-6">
+           <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                 <Keyboard size={18} className="text-rose-500" />
+                 <h3 className="text-xs font-black uppercase tracking-wider text-slate-800 dark:text-white">Acoustic Presets</h3>
+              </div>
+              <span className="text-[8px] font-black bg-rose-50 text-rose-600 dark:bg-rose-950/20 px-2.5 py-1 rounded uppercase tracking-widest">Click to trigger chord</span>
+           </div>
 
-            {/* Main Controls */}
-            <div className="flex flex-col items-center gap-4 w-1/3">
-               <div className="flex items-center gap-10">
-                  <button className="text-slate-500 hover:text-white transition-colors"><SkipBack className="w-6 h-6 fill-current" /></button>
-                  <button 
-                    onClick={togglePlay}
-                    className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-black shadow-2xl transform active:scale-90 transition-all hover:scale-110"
-                  >
-                    {isPlaying ? <Pause className="w-8 h-8 fill-current" /> : <Play className="w-8 h-8 fill-current translate-x-0.5" />}
-                  </button>
-                  <button className="text-slate-500 hover:text-white transition-colors"><SkipForward className="w-6 h-6 fill-current" /></button>
-               </div>
-               <div className="w-full flex items-center gap-4">
-                  <span className="text-[10px] font-black font-mono text-slate-500 w-8">0:00</span>
-                  <div className="flex-grow h-1.5 bg-white/5 rounded-full overflow-hidden relative group cursor-pointer">
-                     <div className="absolute inset-0 bg-white/10 translate-x-[-100%] group-hover:translate-x-[-80%] transition-transform" />
-                     <div className="w-1/3 h-full bg-gradient-to-r from-purple-600 to-pink-600" />
-                  </div>
-                  <span className="text-[10px] font-black font-mono text-slate-500 w-8">{currentSong.duration}</span>
-               </div>
-            </div>
-
-            {/* Right Controls */}
-            <div className="flex items-center justify-end gap-8 w-1/4">
-               <button className="text-slate-500 hover:text-white"><Share2 className="w-5 h-5" /></button>
-               <button 
-                onClick={() => currentSong.audioUrl && downloadSong(currentSong.audioUrl, currentSong.title)}
-                className="text-slate-500 hover:text-white transition-all active:scale-90"
-                title="Download Track"
-               >
-                 <Download className="w-5 h-5" />
+           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {SOUND_PATTERNS[genre]?.map((pat) => (
+                <button
+                  key={pat.name}
+                  onClick={() => selectPattern(pat)}
+                  className="p-5 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-850 border border-transparent hover:border-rose-500/10 rounded-2xl cursor-pointer text-left transition-all active:scale-95 group"
+                >
+                   <div className="flex items-center justify-between mb-3">
+                      <Music className="w-5 h-5 text-rose-500 group-hover:scale-110 transition-transform" />
+                      <span className="text-[8px] font-mono text-slate-400 font-bold uppercase">{pat.notes.length} notes</span>
+                   </div>
+                   <h4 className="text-xs font-black text-slate-800 dark:text-white group-hover:text-rose-600 tracking-tight">{pat.name}</h4>
                 </button>
-               <div className="flex items-center gap-3">
-                  <Volume2 className="w-5 h-5 text-slate-500" />
-                  <div className="w-24 h-1 bg-white/10 rounded-full overflow-hidden">
-                     <div className="w-2/3 h-full bg-slate-400" />
-                  </div>
-               </div>
-            </div>
+              ))}
+           </div>
 
-            <audio 
-              ref={audioRef}
-              src={currentSong.audioUrl}
-              onPlay={() => setIsPlaying(true)}
-              onPause={() => setIsPlaying(false)}
-              onEnded={() => setIsPlaying(false)}
-              hidden
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
+           {/* Audio controls trigger */}
+           <div className="bg-slate-900 dark:bg-rose-950/10 rounded-[24px] p-6 text-white flex flex-col sm:flex-row items-center justify-between gap-4 border border-white/5">
+              <div className="flex items-center gap-3">
+                 <div className={`p-2.5 rounded-xl ${isPlaying ? 'bg-rose-600 animate-spin text-white' : 'bg-white/10 text-slate-300'}`}>
+                   <Zap size={16} />
+                 </div>
+                 <div>
+                    <h4 className="text-xs font-black uppercase tracking-wider">AUDIO SEQUENCER LOOP</h4>
+                    <p className="text-[10px] text-slate-400 font-bold mt-0.5 uppercase">{statusText}</p>
+                 </div>
+              </div>
 
-      {/* Floating Action Button for Mobile */}
-      <div className="fixed bottom-8 right-8 lg:hidden z-[101]">
-         <button 
-          onClick={() => setActiveTab('create')}
-          className="w-16 h-16 bg-purple-600 rounded-full flex items-center justify-center shadow-2xl shadow-purple-600/40 text-white"
-         >
-            <Plus className="w-8 h-8" />
-         </button>
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                 <button 
+                   onClick={toggleSequencer}
+                   className={`w-full sm:w-auto px-8 py-4 rounded-xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer ${isPlaying ? 'bg-red-600 hover:bg-red-700 text-white animate-pulse' : 'bg-rose-600 hover:bg-rose-700 text-white shadow-lg'}`}
+                 >
+                   {isPlaying ? <Pause size={14} /> : <Play size={14} />}
+                   {isPlaying ? 'PAUSE LOOP' : 'START SEQUENCE'}
+                 </button>
+              </div>
+           </div>
+
+           <div className="bg-slate-50 dark:bg-white/5 rounded-2xl p-4 flex gap-3 text-[10px] font-medium text-slate-500 leading-relaxed border border-slate-100 dark:border-slate-800">
+              <Info size={16} className="text-rose-500 shrink-0 mt-0.5" />
+              <p>
+                 Synthesis occurs fully locally using the HTML5 <span className="font-bold text-slate-700 dark:text-slate-300">Web Audio API</span>. Click the chord triggers to preview notes, choose your custom waveform, and press "START SEQUENCE" to hear the loop!
+              </p>
+           </div>
+
+        </div>
+
       </div>
+
     </div>
   );
 };

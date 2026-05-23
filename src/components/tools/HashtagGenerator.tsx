@@ -1,23 +1,38 @@
 import React, { useState } from 'react';
 import { 
   Hash, 
-  Sparkles, 
   Copy, 
   Check, 
   RotateCcw, 
   Zap,
-  Github,
   Twitter,
   Instagram,
   Facebook,
   Linkedin,
-  Search,
   MessageSquare,
-  AlertCircle,
   Loader2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ai, GEMINI_API_KEY } from '../../lib/gemini';
+
+// Local hashtag theme preset library
+const HASHTAG_PRESETS: Record<string, string[]> = {
+  'sunset': ['#Sunset', '#GoldenHour', '#SunsetLovers', '#Skyline', '#BeautifulSunset', '#SunsetPhotography', '#SunsetVibes', '#SkyPorn', '#SunsetChaser'],
+  'beach': ['#BeachVibes', '#OceanLife', '#SandyToes', '#SeaSide', '#BeachLife', '#SummerVibes', '#SaltLife', '#VitaminSea', '#CoastalLiving'],
+  'travel': ['#TravelBlogger', '#Wanderlust', '#ExploreMore', '#AdventureSeeker', '#TravelVibes', '#GlobeTrotter', '#BeautifulDestinations', '#TravelGram', '#RoamThePlanet'],
+  'food': ['#FoodPorn', '#Yummy', '#InstaFood', '#Delicious', '#FoodieStyle', '#Gourmet', '#FoodBlogger', '#HealthyEating', '#NomNom'],
+  'tech': ['#TechNews', '#CodingLife', '#SoftwareDeveloper', '#Innovation', '#Gadgets', '#TechCommunity', '#ByteSized', '#WebDesign', '#DeveloperLife'],
+  'fitness': ['#FitnessMotivation', '#WorkoutMotivation', '#GymLife', '#FitFam', '#HealthyLifestyle', '#GetFit', '#ActiveLiving', '#ExerciseDaily', '#StrengthTraining'],
+  'fashion': ['#FashionStyle', '#OOTD', '#InstaFashion', '#StyleInspiration', '#FashionBlogger', '#StreetWear', '#ChicVibe', '#TrendyLook', '#LookBook'],
+  'nature': ['#NatureLovers', '#MotherNature', '#ScenicView', '#Wilderness', '#NaturePhotography', '#GoOutside', '#EarthPix', '#ForestWalk', '#MountainAir']
+};
+
+const PLATFORM_STARTERS: Record<string, string[]> = {
+  'Instagram': ['#ExplorePage', '#Instagood', '#PhotoOfTheDay', '#TrendingNow'],
+  'X / Twitter': ['#Breaking', '#Trending', '#FNS', '#Opinion'],
+  'LinkedIn': ['#Networking', '#ProfessionalDevelopment', '#WorkCulture', '#CareerGrowth', '#Inspiration'],
+  'Facebook': ['#Community', '#FriendsFamily', '#SupportLocal', '#ViralVideo'],
+  'Threads': ['#ThreadsApp', '#ThreadsVibes', '#Conversations', '#ChitChat'],
+};
 
 export const HashtagGenerator = () => {
   const [input, setInput] = useState('');
@@ -35,37 +50,41 @@ export const HashtagGenerator = () => {
     { name: 'Threads', icon: MessageSquare, color: 'text-slate-900', bg: 'bg-slate-100' },
   ];
 
-  const generateHashtags = async () => {
+  const generateHashtagsLocal = () => {
     if (!input.trim()) return;
-    if (!GEMINI_API_KEY) {
-      alert("API Key missing. Please check configuration.");
-      return;
-    }
-
     setLoading(true);
-    try {
-      const prompt = `Generate 30 highly relevant, trending, and effective hashtags for ${platform} based on this topic or description: "${input}". 
-      Return ONLY the hashtags separated by spaces, no other text or numbering. 
-      Ensure a mix of broad and niche hashtags for maximum reach.`;
 
-      const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: prompt,
+    setTimeout(() => {
+      const cleanInput = input.toLowerCase();
+      const matchedTags = new Set<string>();
+
+      // 1. Add platform essentials
+      const starters = PLATFORM_STARTERS[platform] || [];
+      starters.forEach(t => matchedTags.add(t));
+
+      // 2. Scan for predefined keyword categories
+      Object.entries(HASHTAG_PRESETS).forEach(([keyword, presetTags]) => {
+        if (cleanInput.includes(keyword)) {
+          presetTags.forEach(t => matchedTags.add(t));
+        }
       });
 
-      const text = response.text || "";
-      const generated = text
-        .split(/\s+/)
-        .filter(h => h.startsWith('#'))
-        .map(h => h.replace(/[,.;]$/, ''));
+      // 3. Extract standard capitalized words as hashtags
+      const individualWords = input
+        .split(/[^a-zA-Z0-9]+/)
+        .filter(w => w.length > 3)
+        .slice(0, 10);
       
-      setHashtags(generated.slice(0, 30));
-    } catch (error) {
-      console.error("Hashtag generation failed:", error);
-      alert("AI failed to generate hashtags. Please try again later.");
-    } finally {
+      individualWords.forEach(w => {
+        const hashWord = `#${w.charAt(0).toUpperCase() + w.slice(1)}`;
+        matchedTags.add(hashWord);
+      });
+
+      // Maintain up to 30 custom hashtags limit
+      const resultList = Array.from(matchedTags).slice(0, 30);
+      setHashtags(resultList);
       setLoading(false);
-    }
+    }, 600);
   };
 
   const copyToClipboard = (text: string, index?: number) => {
@@ -75,30 +94,30 @@ export const HashtagGenerator = () => {
       setTimeout(() => setCopiedIndex(null), 2000);
     } else {
       setCopiedAll(true);
-      setTimeout(() => setCopiedAll(null as any), 2000);
+      setTimeout(() => setCopiedAll(false), 2000);
     }
   };
 
   return (
-    <div className="space-y-8 pb-10">
+    <div className="space-y-8 pb-10" id="hashtag-suite-root">
       <div className="text-center space-y-2">
         <div className="w-16 h-16 bg-blue-600/10 text-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
           <Hash className="w-8 h-8" />
         </div>
-        <h2 className="text-3xl font-black italic tracking-tight">AI Hashtag Suite</h2>
-        <p className="text-xs text-slate-400 font-bold uppercase tracking-[0.2em]">Boost your reach with intelligent tags</p>
+        <h2 className="text-3xl font-black italic tracking-tight">HASHTAG CONVERTER <span className="text-blue-600">SUITE</span></h2>
+        <p className="text-xs text-slate-400 font-bold uppercase tracking-[0.2em]">100% Offline Platform Tag Optimizer</p>
       </div>
 
-      <div className="bg-white dark:bg-white/5 rounded-[32px] border border-slate-100 dark:border-white/5 p-6 shadow-sm space-y-6">
+      <div className="bg-white dark:bg-slate-900 rounded-[32px] border border-slate-100 dark:border-slate-800 p-6 shadow-sm space-y-6">
         {/* Platform Selection */}
         <div className="space-y-3">
-          <label className="text-[10px] font-black uppercase text-slate-400 ml-1 tracking-widest">Select Platform</label>
+          <label className="text-[10px] font-black uppercase text-slate-400 ml-1 tracking-widest">Select Platform Type</label>
           <div className="flex flex-wrap gap-2">
             {PLATFORMS.map((p) => (
               <button
                 key={p.name}
                 onClick={() => setPlatform(p.name)}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all active:scale-95 ${platform === p.name ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-lg' : 'bg-slate-50 dark:bg-white/5 text-slate-500'}`}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all active:scale-95 cursor-pointer ${platform === p.name ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-lg' : 'bg-slate-50 dark:bg-slate-800 text-slate-500'}`}
               >
                 <p.icon className="w-4 h-4" />
                 {p.name}
@@ -114,25 +133,24 @@ export const HashtagGenerator = () => {
             <textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="e.g. A sunset photo at the beach with a cinematic vibe..."
-              className="w-full h-32 bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-2xl p-4 text-sm font-medium outline-none focus:ring-2 ring-blue-500/20 resize-none placeholder:text-slate-300 transition-all"
+              placeholder="e.g. A gorgeous sunset photo at the beach with travel vibes..."
+              className="w-full h-32 bg-slate-50 dark:bg-slate-800/40 border border-slate-150 dark:border-slate-750 rounded-2xl p-4 text-sm font-medium outline-none focus:ring-2 ring-blue-500/20 resize-none placeholder:text-slate-300 dark:text-slate-100 transition-all"
             />
-            <div className="absolute bottom-4 right-4 flex items-center gap-2 text-[10px] font-black text-slate-300">
-               <Sparkles className="w-3 h-3" />
-               AI POWERED
+            <div className="absolute bottom-4 right-4 flex items-center gap-2 text-[10px] font-black text-slate-450 dark:text-slate-400 select-none">
+               Offline Analysis Enabled
             </div>
           </div>
         </div>
 
         <button
-          onClick={generateHashtags}
+          onClick={generateHashtagsLocal}
           disabled={loading || !input.trim()}
-          className="w-full h-16 bg-blue-600 text-white rounded-[24px] font-black uppercase tracking-[0.2em] text-xs flex items-center justify-center gap-3 transition-all active:scale-95 shadow-xl shadow-blue-600/20 disabled:opacity-50 disabled:grayscale"
+          className="w-full h-16 bg-blue-600 text-white rounded-[24px] font-black uppercase tracking-[0.15em] text-xs flex items-center justify-center gap-3 transition-all active:scale-95 shadow-xl shadow-blue-600/20 disabled:opacity-50 disabled:grayscale cursor-pointer"
         >
           {loading ? (
             <>
               <Loader2 className="w-5 h-5 animate-spin" />
-              Analyzing with AI...
+              Parsing key phrases...
             </>
           ) : (
             <>
@@ -143,94 +161,45 @@ export const HashtagGenerator = () => {
         </button>
       </div>
 
-      <AnimatePresence mode="wait">
+      {/* Results panel */}
+      <AnimatePresence>
         {hashtags.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            className="space-y-4"
+            className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[32px] p-8 shadow-sm space-y-6"
           >
-            <div className="flex items-center justify-between px-2">
-               <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Optimized Results ({hashtags.length})</h3>
-               <button 
+            <div className="flex items-center justify-between pb-4 border-b border-slate-50 dark:border-white/5">
+              <h3 className="text-xs font-black uppercase tracking-widest text-slate-400">Generated tags ({hashtags.length})</h3>
+              <button
                 onClick={() => copyToClipboard(hashtags.join(' '))}
-                className="flex items-center gap-2 text-blue-600 text-[10px] font-black uppercase tracking-widest hover:underline"
-               >
-                 {copiedAll ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-                 {copiedAll ? 'Copied' : 'Copy All'}
-               </button>
+                className="px-4 py-2 bg-blue-50 dark:bg-blue-500/10 hover:bg-blue-100 rounded-xl text-xs font-bold text-blue-600 transition-all flex items-center gap-2 cursor-pointer"
+              >
+                {copiedAll ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
+                {copiedAll ? 'Copied All!' : 'Copy All Tags'}
+              </button>
             </div>
 
-            <div className="bg-white dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-[32px] p-6 shadow-sm">
-              <div className="flex flex-wrap gap-2">
-                {hashtags.map((tag, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => copyToClipboard(tag, idx)}
-                    className="group relative flex items-center gap-1.5 px-3 py-2 bg-slate-50 dark:bg-white/5 hover:bg-blue-50 dark:hover:bg-blue-500/10 border border-slate-100 dark:border-white/5 rounded-xl transition-all active:scale-90"
-                  >
-                    <span className="text-xs font-black text-slate-600 dark:text-slate-300 group-hover:text-blue-600">{tag}</span>
-                    <AnimatePresence>
-                      {copiedIndex === idx && (
-                        <motion.div
-                          initial={{ opacity: 0, scale: 0.5 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          exit={{ opacity: 0, scale: 0.5 }}
-                          className="absolute -top-1 -right-1 bg-green-500 text-white w-4 h-4 rounded-full flex items-center justify-center"
-                        >
-                          <Check className="w-2.5 h-2.5" />
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </button>
-                ))}
-              </div>
-              
-              <div className="mt-8 pt-6 border-t border-slate-100 dark:border-white/10 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                   <div className="bg-green-100 dark:bg-green-500/20 text-green-600 p-1.5 rounded-lg">
-                      <Zap className="w-4 h-4" />
-                   </div>
-                   <div className="text-left">
-                      <p className="text-[10px] font-black uppercase tracking-tight">Est. Visibility</p>
-                      <p className="text-[9px] font-bold text-slate-400">Increased by 45%</p>
-                   </div>
-                </div>
-                <button 
-                  onClick={() => { setHashtags([]); setInput(''); }}
-                  className="w-10 h-10 bg-slate-100 dark:bg-white/10 rounded-xl flex items-center justify-center text-slate-400 hover:text-red-500 transition-colors"
+            <div className="flex flex-wrap gap-2.5">
+              {hashtags.map((tag, idx) => (
+                <button
+                  key={tag + idx}
+                  onClick={() => copyToClipboard(tag, idx)}
+                  className="px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 hover:bg-blue-50 border border-transparent hover:border-blue-500/10 text-xs font-bold text-slate-600 dark:text-slate-350 hover:text-blue-600 rounded-xl transition-all cursor-pointer flex items-center gap-2"
                 >
-                  <RotateCcw className="w-5 h-5" />
+                  <span>{tag}</span>
+                  {copiedIndex === idx ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3 h-3 text-slate-300 group-hover:block" />}
                 </button>
-              </div>
+              ))}
+            </div>
+
+            <div className="flex items-center gap-3 pt-4 border-t border-slate-55 dark:border-white/5 bg-slate-50/50 dark:bg-slate-800/40 p-4 rounded-2xl border border-dashed text-[11px] text-slate-405 dark:text-slate-400 leading-relaxed font-semibold">
+               <RotateCcw className="w-4 h-4 text-blue-500 shrink-0" />
+               Select alternative values or tweak the input topic words to extract additional hashtag combinations.
             </div>
           </motion.div>
         )}
       </AnimatePresence>
-
-      <div className="bg-slate-900 text-white p-8 rounded-[40px] relative overflow-hidden group">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600 rounded-full blur-[80px] opacity-20 group-hover:opacity-40 transition-opacity" />
-        <div className="relative z-10 space-y-4">
-          <div className="flex items-center gap-2">
-            <Zap className="w-5 h-5 text-blue-400" />
-            <h4 className="text-sm font-black italic">Pro Hashtag Strategy</h4>
-          </div>
-          <p className="text-xs text-slate-400 font-bold leading-relaxed">
-            For maximum reach on {platform}, mix these 30 hashtags. Using a variety of high, medium, and low volume tags helps you trend faster in niche communities while staying visible in broad searches.
-          </p>
-          <div className="flex items-center gap-4 pt-2">
-             <div className="flex -space-x-2">
-                {[1, 2, 3].map(i => (
-                  <div key={i} className="w-6 h-6 rounded-full border-2 border-slate-900 bg-slate-800 flex items-center justify-center overflow-hidden">
-                    <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${i + 42}`} alt="avatar" />
-                  </div>
-                ))}
-             </div>
-             <p className="text-[9px] font-black uppercase tracking-widest text-slate-500">Trusted by 10k+ creators</p>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };

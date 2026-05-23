@@ -1,237 +1,205 @@
 import React, { useState } from 'react';
 import { 
-  Youtube, 
   Tag, 
-  Search, 
   Copy, 
   Check, 
   RotateCcw, 
-  Zap, 
-  TrendingUp, 
-  AlertCircle, 
+  Youtube, 
+  Hash, 
+  CheckSquare, 
+  HelpCircle,
   Loader2,
-  ListFilter,
-  BarChart,
-  Lightbulb,
-  Maximize2
+  ListPlus
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ai, GEMINI_API_KEY } from '../../lib/gemini';
 
 export const YouTubeTagTool = () => {
-  const [input, setInput] = useState('');
-  const [tags, setTags] = useState<string[]>([]);
+  const [keyword, setKeyword] = useState('');
+  const [category, setCategory] = useState('Tech');
   const [loading, setLoading] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const [tags, setTags] = useState<string[]>([]);
+  const [copiedAll, setCopiedAll] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
-  const [analysis, setAnalysis] = useState<string | null>(null);
 
-  const generateTags = async () => {
-    if (!input.trim() || !GEMINI_API_KEY) return;
+  const CATEGORIES = [
+    { name: 'Tech & Coding', value: 'Tech' },
+    { name: 'Gaming & Esport', value: 'Gaming' },
+    { name: 'Vlog & Lifestyle', value: 'Vlog' },
+    { name: 'Education & HowTo', value: 'Education' },
+    { name: 'Music & Ambient', value: 'Entertainment' }
+  ];
+
+  const generateTagsLocal = () => {
+    if (!keyword.trim()) return;
     setLoading(true);
-    setTags([]);
-    setAnalysis(null);
 
-    const currentDate = new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' });
+    setTimeout(() => {
+      const cleanInput = keyword.toLowerCase().trim();
+      const tagSet = new Set<string>();
 
-    try {
-      const prompt = `Current Date: ${currentDate}. YouTube Tag Research for Topic: "${input}". 
-      1. Find 30 highly relevant, currently trending, and high-CTR tags for this YouTube topic. 
-      2. Provide a 2-sentence strategy on how to use these tags effectively for the current YouTube algorithm.
-      Return the tags first, separated by commas, then a separator "---", then the strategy.
-      Use Google Search to ensure these are LIVE and TRENDING tags.`;
+      // Primary tag
+      tagSet.add(cleanInput);
 
-      const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: prompt,
-        config: {
-          tools: [{ googleSearch: {} }]
-        }
-      });
+      // Category based variations
+      if (category === 'Tech') {
+        const TechAdditions = [
+          'coding', 'developer tutorial', 'software coding',
+          'program tutorial', 'step-by-step programming', 'tech guide',
+          'programming for beginners', 'tips and tricks code', 'web development',
+          'full course coding', 'modern programmer setup', 'learn engineering'
+        ];
+        TechAdditions.forEach(t => tagSet.add(`${cleanInput} ${t}`));
+      } else if (category === 'Gaming') {
+        const GameAdditions = [
+          'gameplay video', 'let\'s play walkthrough', 'funny moments gameplay',
+          'speedrun record', 'ultimate guide gamer', 'tips and tricks gameplay',
+          'honest review game', 'hilarious reaction gameplay', 'multiplayer challenge'
+        ];
+        GameAdditions.forEach(t => tagSet.add(`${cleanInput} ${t}`));
+      } else if (category === 'Vlog') {
+        const VlogAdditions = [
+          'daily vlog lifestyle', 'vlogger daily route', 'lifestyle inspiration',
+          'aesthetic travel vlog', 'day in the life study', 'spend the day with me',
+          'realistic routine vlog', 'weekly recap lifestyle', 'creative photo ideas'
+        ];
+        VlogAdditions.forEach(t => tagSet.add(`${cleanInput} ${t}`));
+      } else if (category === 'Education') {
+        const EduAdditions = [
+          'explained simply', 'complete course tutorial', 'school homework help',
+          'educational learning video', 'explained in 10 minutes', 'how-to tutorial',
+          'basic concept guide', 'educational lecture walkthrough', 'improve your skill'
+        ];
+        EduAdditions.forEach(t => tagSet.add(`${cleanInput} ${t}`));
+      } else {
+        const EntAdditions = [
+          'funny entertainment review', 'parody reactions funny', 'top 10 compilation',
+          'music stream background', 'chill sound loop', 'entertaining commentary',
+          'cultural discussion review', 'reaction review video', 'interesting facts video'
+        ];
+        EntAdditions.forEach(t => tagSet.add(`${cleanInput} ${t}`));
+      }
 
-      const fullText = response.text || "";
-      const [tagsPart, strategyPart] = fullText.split('---');
-      
-      const generatedTags = tagsPart
-        .split(',')
-        .map(t => t.trim())
-        .filter(t => t.length > 0 && !t.includes('\n'))
-        .slice(0, 50);
+      // Add longtail phrase variants
+      tagSet.add(`how to do ${cleanInput}`);
+      tagSet.add(`best ${cleanInput} ideas`);
+      tagSet.add(`${cleanInput} compilation`);
+      tagSet.add(`${cleanInput} beginners guide`);
 
-      setTags(generatedTags);
-      setAnalysis(strategyPart?.trim() || null);
-    } catch (error) {
-      console.error("YouTube Tag generation failed:", error);
-      alert("Failed to generate live tags. Check your connection.");
-    } finally {
+      // Convert to Array & set limit to 25 tags
+      setTags(Array.from(tagSet).slice(0, 25));
       setLoading(false);
-    }
+    }, 500);
   };
 
-  const copyToClipboard = (text: string, index?: number) => {
-    navigator.clipboard.writeText(text);
-    if (index !== undefined) {
-      setCopiedIndex(index);
-      setTimeout(() => setCopiedIndex(null), 2000);
-    } else {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
+  const copyAsCommaStream = () => {
+    const streamText = tags.join(', ');
+    navigator.clipboard.writeText(streamText);
+    setCopiedAll(true);
+    setTimeout(() => setCopiedAll(false), 2000);
+  };
+
+  const copySingleTag = (tag: string, idx: number) => {
+    navigator.clipboard.writeText(tag);
+    setCopiedIndex(idx);
+    setTimeout(() => setCopiedIndex(null), 2000);
   };
 
   return (
-    <div className="space-y-8 pb-10">
-      <div className="text-center space-y-2">
-        <div className="w-16 h-16 bg-red-600/10 text-red-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-          <Tag className="w-8 h-8" />
-        </div>
-        <h2 className="text-3xl font-black italic tracking-tight uppercase">Live YouTube Tags</h2>
-        <p className="text-xs text-slate-400 font-bold uppercase tracking-[0.2em]">Real-time keyword intelligence</p>
-      </div>
+    <div className="max-w-4xl mx-auto space-y-8 pb-32" id="youtube-tags-root">
+       
+       {/* Brand Header */}
+       <div className="bg-white dark:bg-slate-900 rounded-[32px] p-8 border border-slate-100 dark:border-slate-800 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6">
+         <div className="flex items-center gap-4">
+           <div className="p-3 bg-red-600 rounded-2xl text-white shadow-lg shadow-red-200">
+             <Tag size={24} />
+           </div>
+           <div>
+             <h2 className="text-2xl font-black text-slate-800 dark:text-white tracking-tight">VIDEO TAGS <span className="text-red-500">GENERATOR</span></h2>
+             <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1">100% Offline YouTube Console Ready Tags</p>
+           </div>
+         </div>
+       </div>
 
-      <div className="bg-white dark:bg-white/5 rounded-[40px] border border-slate-100 dark:border-white/5 p-8 shadow-sm space-y-6">
-        <div className="space-y-3">
-          <label className="text-[10px] font-black uppercase text-slate-400 ml-2 tracking-widest flex items-center gap-2">
-             <Search className="w-3 h-3" />
-             Topic or Video Subject
-          </label>
-          <div className="relative">
-            <input
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="e.g. iPhone 15 Pro Review, Daily VLOG..."
-              className="w-full h-16 bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-[24px] px-6 text-sm font-bold outline-none focus:ring-4 ring-red-500/10 transition-all"
-            />
-            <div className="absolute right-4 top-1/2 -translate-y-1/2">
-               <div className="flex items-center gap-1.5 px-3 py-1 bg-green-100 dark:bg-green-500/20 text-green-600 rounded-full text-[9px] font-black uppercase tracking-tighter">
-                 <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
-                 Live Fetching
-               </div>
-            </div>
+       {/* Form details block */}
+       <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[40px] p-8 shadow-sm space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+             
+             <div className="space-y-2">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Primary Tag Keyword</label>
+                <input 
+                  type="text" 
+                  value={keyword}
+                  onChange={(e) => setKeyword(e.target.value)}
+                  placeholder="e.g. Photoshop design, learning math, travel hacks"
+                  className="w-full bg-slate-50 dark:bg-slate-850 p-4 border rounded-xl font-bold outline-none text-sm text-slate-800 dark:text-slate-100"
+                />
+             </div>
+
+             <div className="space-y-2">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Target Niche</label>
+                <select 
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  className="w-full bg-slate-50 dark:bg-slate-850 p-4 border rounded-xl font-bold outline-none text-sm text-slate-605 dark:text-slate-350"
+                >
+                   {CATEGORIES.map(cat => (
+                     <option key={cat.value} value={cat.value}>{cat.name}</option>
+                   ))}
+                </select>
+             </div>
+
           </div>
-        </div>
 
-        <button
-          onClick={generateTags}
-          disabled={loading || !input.trim()}
-          className="w-full h-16 bg-red-600 text-white rounded-[24px] font-black uppercase tracking-[0.2em] text-xs flex items-center justify-center gap-3 transition-all active:scale-95 shadow-xl shadow-red-600/30 disabled:opacity-50"
-        >
-          {loading ? (
-            <>
-              <Loader2 className="w-5 h-5 animate-spin" />
-              Scanning Algorithm...
-            </>
-          ) : (
-            <>
-              <Zap className="w-5 h-5" />
-              Extract Live Tags
-            </>
-          )}
-        </button>
-      </div>
-
-      <AnimatePresence mode="wait">
-        {tags.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            className="space-y-6"
+          <button 
+            onClick={generateTagsLocal}
+            disabled={loading || !keyword.trim()}
+            className="w-full py-5 bg-red-600 hover:bg-red-700 text-white rounded-[24px] font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 shadow-xl shadow-red-200 dark:shadow-none cursor-pointer disabled:opacity-50 animate-pulse"
           >
-            <div className="flex items-center justify-between px-4">
-               <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Viral Tags Found ({tags.length})</h3>
-               <button 
-                onClick={() => copyToClipboard(tags.join(', '))}
-                className="flex items-center gap-1.5 text-red-600 text-[10px] font-black uppercase tracking-widest"
-               >
-                 {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-                 {copied ? 'Copied' : 'Copy All'}
-               </button>
-            </div>
+             {loading ? <Loader2 className="animate-spin" size={16} /> : <ListPlus size={16} />}
+             {loading ? 'Synthesizing tags list...' : 'Assemble Optimization Tags'}
+          </button>
+       </div>
 
-            <div className="bg-white dark:bg-white/5 border border-slate-100 dark:border-white/5 rounded-[40px] p-8 shadow-sm">
-              <div className="flex flex-wrap gap-2 mb-8">
-                {tags.map((tag, idx) => (
+       {/* Results mapping */}
+       <AnimatePresence>
+          {tags.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="bg-white dark:bg-slate-900 rounded-[32px] border border-slate-100 dark:border-slate-820 p-8 shadow-sm space-y-6 animate-fade-in"
+            >
+               <div className="flex items-center justify-between pb-4 border-b border-slate-50 dark:border-white/5">
+                  <h3 className="text-xs font-black uppercase tracking-widest text-slate-400">CONSOLE READY TAGS ({tags.length})</h3>
                   <button
-                    key={idx}
-                    onClick={() => copyToClipboard(tag, idx)}
-                    className="group relative flex items-center gap-2 px-4 py-2.5 bg-slate-50 dark:bg-white/5 hover:bg-red-50 dark:hover:bg-red-500/10 border border-slate-100 dark:border-white/5 rounded-xl transition-all active:scale-90"
+                    onClick={copyAsCommaStream}
+                    className="px-4 py-2.5 bg-red-50 dark:bg-red-500/10 text-red-600 rounded-xl text-xs font-black uppercase tracking-wider cursor-pointer"
                   >
-                    <span className="text-xs font-bold text-slate-600 dark:text-slate-300 group-hover:text-red-600">
-                      {tag}
-                    </span>
-                    <AnimatePresence>
-                      {copiedIndex === idx && (
-                        <motion.div
-                          initial={{ opacity: 0, scale: 0.5 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          exit={{ opacity: 0, scale: 0.5 }}
-                          className="absolute -top-1 -right-1 bg-green-500 text-white w-4 h-4 rounded-full flex items-center justify-center"
-                        >
-                          <Check className="w-2.5 h-2.5" />
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
+                     {copiedAll ? <Check className="w-4 h-4 text-emerald-500 inline mr-1" /> : <Copy className="w-4 h-4 inline mr-1" />}
+                     {copiedAll ? 'Copied Comma List!' : 'Copy Tags (Comma-Separated)'}
                   </button>
-                ))}
-              </div>
+               </div>
 
-              {analysis && (
-                <div className="mt-8 pt-8 border-t border-slate-100 dark:border-white/10">
-                   <div className="flex items-start gap-4">
-                      <div className="w-10 h-10 bg-amber-100 dark:bg-amber-500/20 text-amber-600 rounded-xl flex items-center justify-center shrink-0">
-                         <Lightbulb className="w-5 h-5" />
-                      </div>
-                      <div className="text-left py-1">
-                         <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Algorithm Strategy</p>
-                         <p className="text-sm font-bold text-slate-600 dark:text-slate-300 leading-relaxed italic pr-4">
-                            "{analysis}"
-                         </p>
-                      </div>
-                   </div>
-                </div>
-              )}
+               <div className="flex flex-wrap gap-2.5">
+                  {tags.map((tag, idx) => (
+                    <button
+                      key={tag + idx}
+                      onClick={() => copySingleTag(tag, idx)}
+                      className="px-3.5 py-2 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-755 border rounded-xl text-xs font-bold text-slate-600 dark:text-slate-350 flex items-center gap-2 cursor-pointer transition-all active:scale-95"
+                    >
+                       <span>{tag}</span>
+                       {copiedIndex === idx ? <Check size={12} className="text-green-500" /> : <Copy size={10} className="text-slate-305" />}
+                    </button>
+                  ))}
+               </div>
 
-              <div className="mt-8 pt-6 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-green-100 dark:bg-green-500/20 text-green-600 rounded-xl flex items-center justify-center">
-                    <TrendingUp className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-black uppercase tracking-tight">Search Accuracy</p>
-                    <p className="text-[9px] font-bold text-slate-400">98% Correlation with Trends</p>
-                  </div>
-                </div>
-                <button onClick={() => { setTags([]); setInput(''); setAnalysis(null); }} className="w-12 h-12 bg-slate-100 dark:bg-white/10 rounded-2xl flex items-center justify-center text-slate-400 active:scale-90 transition-transform">
-                  <RotateCcw className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+               <div className="bg-slate-50 dark:bg-white/5 p-4 rounded-xl flex gap-3 text-[10px] text-slate-500 font-semibold border italic leading-relaxed">
+                  <HelpCircle size={14} className="text-red-500 shrink-0 mt-0.5" />
+                  YouTube tags remain excellent for signaling longtail search intent in your YouTube studio console. Copy the Comma-Separated output stream above and paste it directly into the "Tags" textbox in YouTube Creator Studio.
+               </div>
+            </motion.div>
+          )}
+       </AnimatePresence>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-         <div className="bg-slate-900 border border-white/5 p-6 rounded-[32px] text-white space-y-4">
-            <div className="flex items-center gap-2 text-red-500">
-               <Youtube className="w-4 h-4" />
-               <p className="text-[10px] font-black uppercase tracking-[0.2em]">Tag Placement</p>
-            </div>
-            <p className="text-xs font-bold text-slate-400 leading-relaxed capitalize">
-              Always put your most important keyword in the first 3 tags. YouTube uses these to categorize your video's "DNA" instantly.
-            </p>
-         </div>
-         <div className="bg-red-600 p-6 rounded-[32px] text-white space-y-4 shadow-xl shadow-red-600/20">
-            <div className="flex items-center gap-2 text-white/80">
-               <BarChart className="w-4 h-4" />
-               <p className="text-[10px] font-black uppercase tracking-[0.2em]">Live Insights</p>
-            </div>
-            <p className="text-xs font-bold text-white/90 leading-relaxed capitalize">
-              Our AI connects to Google Search LIVE twice every hour to update the trending weight of every keyword in our database.
-            </p>
-         </div>
-      </div>
     </div>
   );
 };

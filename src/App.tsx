@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Box, 
   Settings, 
@@ -64,7 +64,10 @@ import {
   Key,
   Minimize,
   Link,
-  Navigation
+  Navigation,
+  CreditCard,
+  Contact,
+  Edit3
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -109,6 +112,14 @@ import { YouTubeSEOTool } from './components/tools/YouTubeSEOTool';
 import { YouTubeResearchTool } from './components/tools/YouTubeResearchTool';
 import { YouTubeTagTool } from './components/tools/YouTubeTagTool';
 import { YouTubeTranscript } from './components/tools/YouTubeTranscript';
+import { YouTubeIDCardMaker } from './components/tools/YouTubeIDCardMaker';
+import { WebsiteScreenshotTaker } from './components/tools/WebsiteScreenshotTaker';
+import { VisitingCardMaker } from './components/tools/VisitingCardMaker';
+import { StudentIDCardMaker } from './components/tools/StudentIDCardMaker';
+import { GoogleIDCardMaker } from './components/tools/GoogleIDCardMaker';
+import { BDSmartNIDMaker } from './components/tools/BDSmartNIDMaker';
+import { FacebookIDCardMaker } from './components/tools/FacebookIDCardMaker';
+import { SignatureGenerator } from './components/tools/SignatureGenerator';
 import { SocialAudit } from './components/tools/SocialAudit';
 import { SocialMediaTrendingTool } from './components/tools/SocialMediaTrendingTool';
 // import { PictureTo360 } from './components/tools/PictureTo360';
@@ -304,6 +315,14 @@ const TOOL_CONFIG = [
   { id: 'yt-comment-picker-custom', name: 'YouTube Giveaway Comment Picker', description: 'Select random comment winners from a list block offline.', category: 'UTIL', icon: Sliders, color: 'bg-red-700', component: YouTubeCommentPicker },
   { id: 'yt-views-ratio-custom', name: 'YouTube Views to Engagement Ratio', description: 'Determine audience interaction scores from simple parameters.', category: 'UTIL', icon: BarChart2, color: 'bg-red-600', component: YouTubeViewsRatioCalculator },
   { id: 'yt-channel-age-custom', name: 'YouTube Channel Age Estimator', description: 'Estimate registration anniversaries and history parameters locally.', category: 'UTIL', icon: CalendarIcon, color: 'bg-red-600', component: YouTubeChannelAgeChecker },
+  { id: 'yt-id-card-maker', name: 'YouTube Creator ID Card Maker', description: 'Design custom YouTube Creator ID passes, milestones badge certifications, and barcodes offline.', category: 'UTIL', icon: Youtube, color: 'bg-red-700', component: YouTubeIDCardMaker },
+  { id: 'website-screenshot-taker', name: 'Website Screenshot Taker', description: 'Generate high-resolution device screenshot mockups of any website.', category: 'UTIL', icon: Globe, color: 'bg-teal-600', component: WebsiteScreenshotTaker },
+  { id: 'visiting-card-maker', name: 'Visiting Card Maker Pro', description: 'Design exquisite vertical or horizontal business card layouts, select accent colors, compile vCard QR links, and export production print-ready maps offline.', category: 'UTIL', icon: CreditCard, color: 'bg-indigo-600', component: VisitingCardMaker },
+  { id: 'student-id-card-maker', name: 'Student ID Card Maker', description: 'Design standardized student ID passes, configure custom blood groups, academic sessions, verified barcode seals, and export high-DPI assets offline.', category: 'UTIL', icon: Contact, color: 'bg-blue-600', component: StudentIDCardMaker },
+  { id: 'google-id-card-maker', name: 'Google ID Card Maker', description: 'Design standardized corporate Google ID passes, configure custom employee titles, office locations, and barcode signatures offline.', category: 'UTIL', icon: Contact, color: 'bg-emerald-600', component: GoogleIDCardMaker },
+  { id: 'bd-smart-nid-maker', name: 'Fake BD Smart NID Card Maker', description: 'Design simulated Bangladeshi Smart National Identity (NID) cards, configure custom Bengali and English registries, biometric microchips, barcode lines, and download high-DPI maps offline.', category: 'UTIL', icon: Contact, color: 'bg-green-700', component: BDSmartNIDMaker },
+  { id: 'facebook-id-card-maker', name: 'Facebook ID Card Maker', description: 'Design stylized Facebook Creator credentials, Meta ID passes, custom profile rings, verified blue badges, and download high-DPI assets offline.', category: 'UTIL', icon: Facebook, color: 'bg-blue-600', component: FacebookIDCardMaker },
+  { id: 'signature-generator', name: 'E-Signature Pad & Generator', description: 'Design signatures and digital hand-signs. Supports natural drawing pens, signature cursive style presets, customized approval seals, and transparent PNG/JPEG export offline.', category: 'UTIL', icon: Edit3, color: 'bg-teal-600', component: SignatureGenerator },
 
   // SECTION 3C: Offline SEO & Domain Tools
   { id: 'seo-rank-checker-custom', name: 'Website Ranking Auditor', description: 'Retrieve estimated domain ranks and backlinks metrics locally.', category: 'UTIL', icon: Globe, color: 'bg-slate-700', component: WebsiteRankingChecker },
@@ -368,8 +387,16 @@ const TOOL_CONFIG = [
 import { FloatingContact } from './components/FloatingContact';
 
 export default function App() {
-  const [activeTool, setActiveTool] = useState<string | null>(null);
+  const [activeTool, setActiveToolState] = useState<string | null>(null);
   const [activeNav, setActiveNav] = useState('tools');
+  const lastScrollY = useRef(0);
+
+  const setActiveTool = (toolId: string | null) => {
+    if (toolId !== null) {
+      lastScrollY.current = window.scrollY || document.documentElement.scrollTop;
+    }
+    setActiveToolState(toolId);
+  };
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
 
@@ -414,12 +441,57 @@ export default function App() {
     );
   };
 
-  const [userStatus, setUserStatus] = useState({
-    name: 'User',
-    plan: 'Starter',
-    requestsUsed: 12,
-    isPro: false
+  const [userStatus, setUserStatus] = useState(() => {
+    try {
+      const saved = localStorage.getItem('mirazul_tools_user_status');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return {
+          name: parsed.name ?? 'User',
+          plan: parsed.plan ?? 'Starter',
+          requestsUsed: parsed.requestsUsed ?? 12,
+          isPro: parsed.isPro ?? false,
+          toolsUsedCount: parsed.toolsUsedCount ?? 78,
+          timeSaved: parsed.timeSaved ?? '120h'
+        };
+      }
+    } catch (_) {}
+    return {
+      name: 'User',
+      plan: 'Starter',
+      requestsUsed: 12,
+      isPro: false,
+      toolsUsedCount: 78,
+      timeSaved: '120h'
+    };
   });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('mirazul_tools_user_status', JSON.stringify(userStatus));
+    } catch (_) {}
+  }, [userStatus]);
+
+  useEffect(() => {
+    if (activeTool) {
+      window.scrollTo(0, 0);
+      document.documentElement.scrollTo(0, 0);
+      document.body.scrollTo(0, 0);
+    } else {
+      if (activeNav === 'tools') {
+        const restoreY = lastScrollY.current;
+        setTimeout(() => {
+          window.scrollTo({ top: restoreY });
+          document.documentElement.scrollTo({ top: restoreY });
+          document.body.scrollTo({ top: restoreY });
+        }, 50);
+      } else {
+        window.scrollTo(0, 0);
+        document.documentElement.scrollTo(0, 0);
+        document.body.scrollTo(0, 0);
+      }
+    }
+  }, [activeTool, activeNav]);
 
   const renderDashboard = () => {
     if (activeNav === 'plus') {

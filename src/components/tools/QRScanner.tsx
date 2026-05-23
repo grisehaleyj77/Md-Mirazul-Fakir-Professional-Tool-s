@@ -22,6 +22,7 @@ export const QRScanner = () => {
           qrbox: { width: 250, height: 250 },
           aspectRatio: 1.0,
           showTorchButtonIfSupported: true,
+          supportedScanTypes: [0] // SCAN_TYPE_CAMERA
         },
         /* verbose= */ false
       );
@@ -43,14 +44,13 @@ export const QRScanner = () => {
     setScanResult(decodedText);
     setIsScanning(false);
     if (scannerRef.current) {
-      scannerRef.current.clear();
+      scannerRef.current.clear().catch(() => {});
     }
   };
 
   const onScanFailure = (error: string) => {
     // This is called for every frame where no QR is found.
-    // Usually we don't want to show an error unless it's fatal.
-    // console.warn(`Code scan error = ${error}`);
+    // We suppress the console output to avoid console flooding with ZXing errors.
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -64,11 +64,10 @@ export const QRScanner = () => {
     try {
       const decodedText = await html5QrCode.scanFile(file, true);
       setScanResult(decodedText);
-    } catch (err) {
-      setError("No QR code found in this image. Please try another one.");
-      console.error(err);
-    } finally {
-      html5QrCode.clear();
+    } catch (err: any) {
+      // Gracefully capture the "No MultiFormat Readers were able to detect the code" error and show a user-friendly error
+      setError("No valid QR code detected in this image. Please ensure the image is clear and contains a visible QR code.");
+      console.warn("Scan failed gracefully:", err);
     }
   };
 

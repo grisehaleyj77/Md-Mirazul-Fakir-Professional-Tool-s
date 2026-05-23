@@ -23,8 +23,8 @@ export const Profile = ({ userStatus, onUpdateName }: any) => {
   const [tempName, setTempName] = React.useState(userStatus.name);
 
   const stats = [
-    { label: 'Tools Used', value: '42', icon: Briefcase, color: 'text-blue-600' },
-    { label: 'Time Saved', value: '12h', icon: Clock, color: 'text-green-600' },
+    { label: 'Tools Used', value: userStatus.toolsUsedCount?.toString() || '78', icon: Briefcase, color: 'text-blue-600' },
+    { label: 'Time Saved', value: userStatus.timeSaved || '120h', icon: Clock, color: 'text-green-600' },
     { label: 'Badge', value: userStatus.plan === 'Elite' ? 'Elite' : userStatus.plan === 'Pro' ? 'Pro' : 'Elite', icon: Award, color: 'text-purple-600' }
   ];
 
@@ -171,7 +171,7 @@ export const Profile = ({ userStatus, onUpdateName }: any) => {
           
           <div className="mt-6 text-center space-y-1">
             <h2 className="text-3xl font-black italic tracking-tight">{userStatus.name}</h2>
-            <p className="text-slate-400 font-bold text-sm">Member since May 2024</p>
+            <p className="text-slate-400 font-bold text-sm">Member since May 2026</p>
             <div className="flex items-center gap-2 justify-center mt-3">
               <div className="bg-blue-600/10 text-blue-600 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest flex items-center gap-1.5">
                 {userStatus.isPro ? <Star className="w-3 h-3 fill-current" /> : <Zap className="w-3 h-3" />}

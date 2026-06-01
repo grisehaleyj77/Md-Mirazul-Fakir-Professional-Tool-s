@@ -67,7 +67,11 @@ import {
   Navigation,
   CreditCard,
   Contact,
-  Edit3
+  Edit3,
+  Wifi,
+  Fingerprint,
+  Smartphone,
+  Mail
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -82,6 +86,7 @@ import { VideoCopyrightRemover } from './components/tools/VideoCopyrightRemover'
 import { EnglishToBengaliDictionary } from './components/tools/EnglishToBengaliDictionary';
 import { PDFPageNumbering } from './components/tools/PDFPageNumbering';
 import { WordEditor } from './components/tools/WordEditor';
+import { ExcelEditor } from './components/tools/ExcelEditor';
 import { OCRTool } from './components/tools/OCRTool';
 import { QRSuite } from './components/tools/QRSuite';
 import { QRScanner } from './components/tools/QRScanner';
@@ -118,8 +123,15 @@ import { VisitingCardMaker } from './components/tools/VisitingCardMaker';
 import { StudentIDCardMaker } from './components/tools/StudentIDCardMaker';
 import { GoogleIDCardMaker } from './components/tools/GoogleIDCardMaker';
 import { BDSmartNIDMaker } from './components/tools/BDSmartNIDMaker';
+import { BdnidChecker } from './components/tools/BdnidChecker';
 import { FacebookIDCardMaker } from './components/tools/FacebookIDCardMaker';
 import { SignatureGenerator } from './components/tools/SignatureGenerator';
+import { FacebookPhotoSizeGenerator } from './components/tools/FacebookPhotoSizeGenerator';
+import { InternetSpeedChecker } from './components/tools/InternetSpeedChecker';
+import { FingerprintScanner } from './components/tools/FingerprintScanner';
+import { WebsiteToApkConverter } from './components/tools/WebsiteToApkConverter';
+import { GmailNameCreator } from './components/tools/GmailNameCreator';
+import { PictureToPrompt } from './components/tools/PictureToPrompt';
 import { SocialAudit } from './components/tools/SocialAudit';
 import { SocialMediaTrendingTool } from './components/tools/SocialMediaTrendingTool';
 // import { PictureTo360 } from './components/tools/PictureTo360';
@@ -146,10 +158,12 @@ import { WorldMapTool } from './components/tools/WorldMapTool';
 import { Bangladesh3DMap } from './components/tools/Bangladesh3DMap';
 import { GrammarChecker } from './components/tools/GrammarChecker';
 import { ArticleRewriter } from './components/tools/ArticleRewriter';
+import { AIWriter } from './components/tools/AIWriter';
 import { BackwardsTextGenerator } from './components/tools/BackwardsTextGenerator';
 import { TextToHashtagsConverter } from './components/tools/TextToHashtagsConverter';
 import { TextCompare } from './components/tools/TextCompare';
 import { TextToSlugConverter } from './components/tools/TextToSlugConverter';
+import { AIVirtualTryOn } from './components/tools/AIVirtualTryOn';
 
 // Custom Text Tools imports
 import { 
@@ -237,6 +251,7 @@ const TOOL_CONFIG = [
   { id: 'excel-to-pdf', name: 'Excel to PDF Creator', description: 'Output spreadsheet matrices to pristine PDF files.', category: 'DOC', icon: FileSpreadsheet, color: 'bg-emerald-600', component: ExcelToPDF },
   { id: 'pdf-numbering', name: 'PDF Page Numbering', description: 'Auto-stamp sequential pagination onto PDF files.', category: 'DOC', icon: FileType, color: 'bg-teal-600', component: PDFPageNumbering },
   { id: 'word-editor', name: 'Word Editor Pro', description: 'Professional rich text processor and docx canvas.', category: 'DOC', icon: FileText, color: 'bg-blue-700', component: WordEditor },
+  { id: 'excel-editor', name: 'Excel Editor Pro', description: 'Interactive spreadsheet grid with live formulas, charts, styles and exports.', category: 'DOC', icon: FileSpreadsheet, color: 'bg-emerald-600', component: ExcelEditor },
   { id: 'word-to-pdf', name: 'Word to PDF Converter', description: 'Transform .docx layouts directly into standard PDFs.', category: 'DOC', icon: FileDown, color: 'bg-red-600', component: WordToPDF },
   { id: 'pdf-to-word', name: 'PDF to Word Converter', description: 'Re-serialize PDF contents into docx word blocks.', category: 'DOC', icon: FileUp, color: 'bg-sky-600', component: PDFToWord },
   { id: 'img-to-pdf', name: 'Image to PDF Maker', description: 'Convert camera photos or screenshots into pages of PDF.', category: 'DOC', icon: ImageIcon, color: 'bg-[#a21caf]', component: ImageToPdfTool },
@@ -246,6 +261,8 @@ const TOOL_CONFIG = [
   { id: 'text-to-word', name: 'Text to Word Exporter', description: 'Write clear typography content and output as clean .docx.', category: 'DOC', icon: FileType, color: 'bg-indigo-600', component: TextToWord },
 
   // SECTION 2: Media & Creators Tools (MEDIA)
+  { id: 'ai-virtual-try-on', name: 'AI Virtual Try-On', description: 'Try on clothing garments virtually on a live model template or uploaded portrait shot using interactive layouts or Gemini AI blending.', category: 'AI', icon: Sparkles, color: 'bg-blue-600', component: AIVirtualTryOn },
+  { id: 'ai-writer', name: 'Article Writer Tool', description: 'Generate exhaustive 5000+ words articles with professional SEO entities and corresponding matching pictures on 1-click.', category: 'AI', icon: Sparkles, color: 'bg-emerald-600', component: AIWriter },
   { id: 'copyright-remover', name: 'Copyright Sanitizer', description: 'Remove metadata, tags, and licensing stamps from images.', category: 'AI', icon: Sparkles, color: 'bg-purple-600', component: CopyrightRemoverAI },
   { id: 'video-copyright-remover', name: 'Video Copyright Sanitizer', description: 'Scan and clean copyrighted properties in media feeds.', category: 'AI', icon: Video, color: 'bg-indigo-600', component: VideoCopyrightRemover },
   { id: 'ocr-tool', name: 'OCR Text Extractor', description: 'Extract text from scanned layouts using offline OCR.', category: 'AI', icon: Search, color: 'bg-yellow-600', component: OCRTool },
@@ -321,8 +338,15 @@ const TOOL_CONFIG = [
   { id: 'student-id-card-maker', name: 'Student ID Card Maker', description: 'Design standardized student ID passes, configure custom blood groups, academic sessions, verified barcode seals, and export high-DPI assets offline.', category: 'UTIL', icon: Contact, color: 'bg-blue-600', component: StudentIDCardMaker },
   { id: 'google-id-card-maker', name: 'Google ID Card Maker', description: 'Design standardized corporate Google ID passes, configure custom employee titles, office locations, and barcode signatures offline.', category: 'UTIL', icon: Contact, color: 'bg-emerald-600', component: GoogleIDCardMaker },
   { id: 'bd-smart-nid-maker', name: 'Fake BD Smart NID Card Maker', description: 'Design simulated Bangladeshi Smart National Identity (NID) cards, configure custom Bengali and English registries, biometric microchips, barcode lines, and download high-DPI maps offline.', category: 'UTIL', icon: Contact, color: 'bg-green-700', component: BDSmartNIDMaker },
+  { id: 'bd-nid-checker', name: 'Bangladesh National ID Checker', description: 'Validate Bangladeshi NID card formats (10/13/17-digits), extract demographic district metadata, and query simulated voter registry database nodes.', category: 'UTIL', icon: Shield, color: 'bg-emerald-700', component: BdnidChecker },
   { id: 'facebook-id-card-maker', name: 'Facebook ID Card Maker', description: 'Design stylized Facebook Creator credentials, Meta ID passes, custom profile rings, verified blue badges, and download high-DPI assets offline.', category: 'UTIL', icon: Facebook, color: 'bg-blue-600', component: FacebookIDCardMaker },
+  { id: 'facebook-photo-resizer', name: 'Facebook Photo Template Generator', description: 'Resize images to standard Facebook profiles, cover images, community groups, story templates, and ad designs with real-time responsive safe margin guidelines.', category: 'UTIL', icon: Facebook, color: 'bg-indigo-600', component: FacebookPhotoSizeGenerator },
   { id: 'signature-generator', name: 'E-Signature Pad & Generator', description: 'Design signatures and digital hand-signs. Supports natural drawing pens, signature cursive style presets, customized approval seals, and transparent PNG/JPEG export offline.', category: 'UTIL', icon: Edit3, color: 'bg-teal-600', component: SignatureGenerator },
+  { id: 'internet-speed-checker', name: 'Internet Speed Test Suite', description: 'Test your broadband internet download and upload speed bandwidth, latency ping, and jitter stability in real-time with visual speedometer gauges.', category: 'UTIL', icon: Wifi, color: 'bg-teal-700', component: InternetSpeedChecker },
+  { id: 'fingerprint-scanner', name: 'Biometric Fingerprint Scanner & Key', description: 'Simulate biometric fingerprint scans, display minutiae core ridges, and synthesize secure AES-256 cryptographic security keys offline.', category: 'UTIL', icon: Fingerprint, color: 'bg-emerald-600', component: FingerprintScanner },
+  { id: 'website-to-apk-converter', name: 'Website to Android App Converter', description: 'Convert websites, portfolios, or shops into Android apps (APK). Customize brand colors, launch icons, splash indicators, and download full Kotlin studio source files.', category: 'UTIL', icon: Smartphone, color: 'bg-indigo-600', component: WebsiteToApkConverter },
+  { id: 'gmail-name-creator', name: 'Gmail Name Creator Pro', description: 'Generate professional, unique, and brand-aligned Gmail email addresses using Gemini AI or local rule-based combinators.', category: 'UTIL', icon: Mail, color: 'bg-[#ef4444]', component: GmailNameCreator },
+  { id: 'picture-to-prompt', name: 'Picture to Prompt Suite', description: 'Reverse-engineer any image into highly optimized prompts. Extract rich subjects, lighting parameters, exact color keys, fine tags, and variant compositions.', category: 'UTIL', icon: ImageIcon, color: 'bg-[#6366f1]', component: PictureToPrompt },
 
   // SECTION 3C: Offline SEO & Domain Tools
   { id: 'seo-rank-checker-custom', name: 'Website Ranking Auditor', description: 'Retrieve estimated domain ranks and backlinks metrics locally.', category: 'UTIL', icon: Globe, color: 'bg-slate-700', component: WebsiteRankingChecker },
@@ -451,7 +475,7 @@ export default function App() {
           plan: parsed.plan ?? 'Starter',
           requestsUsed: parsed.requestsUsed ?? 12,
           isPro: parsed.isPro ?? false,
-          toolsUsedCount: parsed.toolsUsedCount ?? 78,
+          toolsUsedCount: TOOL_CONFIG.length,
           timeSaved: parsed.timeSaved ?? '120h'
         };
       }
@@ -461,7 +485,7 @@ export default function App() {
       plan: 'Starter',
       requestsUsed: 12,
       isPro: false,
-      toolsUsedCount: 78,
+      toolsUsedCount: TOOL_CONFIG.length,
       timeSaved: '120h'
     };
   });
@@ -517,7 +541,7 @@ export default function App() {
           exit={{ opacity: 0, y: 10 }}
           className="p-6 md:p-8"
         >
-          <Profile userStatus={userStatus} onUpdateName={(name: string) => setUserStatus(prev => ({ ...prev, name }))} />
+          <Profile userStatus={userStatus} onUpdateName={(name: string) => setUserStatus(prev => ({ ...prev, name }))} toolsCount={TOOL_CONFIG.length} />
         </motion.div>
       );
     }

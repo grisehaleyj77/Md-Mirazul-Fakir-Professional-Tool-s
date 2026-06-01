@@ -18,12 +18,12 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-export const Profile = ({ userStatus, onUpdateName }: any) => {
+export const Profile = ({ userStatus, onUpdateName, toolsCount }: any) => {
   const [activeSubView, setActiveSubView] = React.useState<string | null>(null);
   const [tempName, setTempName] = React.useState(userStatus.name);
 
   const stats = [
-    { label: 'Tools Used', value: userStatus.toolsUsedCount?.toString() || '78', icon: Briefcase, color: 'text-blue-600' },
+    { label: 'Tools Used', value: (toolsCount ?? userStatus.toolsUsedCount ?? 78).toString(), icon: Briefcase, color: 'text-blue-600' },
     { label: 'Time Saved', value: userStatus.timeSaved || '120h', icon: Clock, color: 'text-green-600' },
     { label: 'Badge', value: userStatus.plan === 'Elite' ? 'Elite' : userStatus.plan === 'Pro' ? 'Pro' : 'Elite', icon: Award, color: 'text-purple-600' }
   ];

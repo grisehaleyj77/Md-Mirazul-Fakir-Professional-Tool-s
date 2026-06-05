@@ -164,6 +164,7 @@ import { TextToHashtagsConverter } from './components/tools/TextToHashtagsConver
 import { TextCompare } from './components/tools/TextCompare';
 import { TextToSlugConverter } from './components/tools/TextToSlugConverter';
 import { AIVirtualTryOn } from './components/tools/AIVirtualTryOn';
+import { BangladeshTrendingTopics } from './components/tools/BangladeshTrendingTopics';
 
 // Custom Text Tools imports
 import { 
@@ -281,6 +282,7 @@ const TOOL_CONFIG = [
   { id: 'yt-transcript', name: 'YouTube Transcript Reader', description: 'Download human-friendly timeline transcripts from videos.', category: 'AI', icon: AlignLeft, color: 'bg-[#991b1b]', component: YouTubeTranscript },
   { id: 'social-audit', name: 'Social Profile Auditor', description: 'Evaluate channel profiles for engagement leaks.', category: 'AI', icon: Monitor, color: 'bg-blue-800', component: SocialAudit },
   { id: 'social-trends', name: 'Social Media Trends', description: 'Highlight viral terms across search platforms.', category: 'AI', icon: Flame, color: 'bg-amber-600', component: SocialMediaTrendingTool },
+  { id: 'bd-trending-topics', name: 'Live Bangladesh Trends', description: 'Monitor live trending topics, hot stories, and viral news in Bangladesh with real-time AI and Google search grounding.', category: 'AI', icon: Flame, color: 'bg-emerald-600', component: BangladeshTrendingTopics },
   { id: 'photo-stylist', name: 'Trending Photo Stylist', description: 'Add dynamic overlays, grains, and vintage templates.', category: 'AI', icon: Palette, color: 'bg-sky-500', component: TrendingPhotoStyle },
   { id: 'bg-remover', name: 'Background Studio Remover', description: 'Delineate and remove backdrops under layers.', category: 'AI', icon: Sparkles, color: 'bg-[#7c3aed]', component: BackgroundRemover },
   { id: 'watermark-remover', name: 'Watermark Clean Remover', description: 'Retouch stamps and purge background overlays.', category: 'AI', icon: Layers, color: 'bg-cyan-700', component: WatermarkRemover },

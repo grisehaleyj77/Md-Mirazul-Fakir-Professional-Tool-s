@@ -940,6 +940,170 @@ Do NOT add any text captions, watermark, side-by-side grids, split borders, or l
     }
   });
 
+  app.post("/api/bd-trends", async (req, res) => {
+    const appApiKey = process.env.GEMINI_API_KEY || process.env.API_KEY;
+    if (!appApiKey) {
+      return res.status(500).json({ error: "Gemini API key is not configured in Settings." });
+    }
+
+    try {
+      const response = await ai.models.generateContent({
+        model: "gemini-3.5-flash",
+        contents: "Produce a detailed, premium, high-fidelity JSON object representing the top 10 most current live trending topics, hot issues, news discussions, national/district updates, sports events, viral natok/dramas, or cultural hotspots in Bangladesh today. For each trending topic, provide 5 prominent, highly searched live trending keywords (in English or Bengali script) that users are typing in search engines to find information about this topic. Structure into categories like 'Sports', 'News & Urban', 'Entertainment', 'Education', 'Technology', 'Economy', or others. Return actual, genuine events happening in Bangladesh right now using the search grounding tool.",
+        config: {
+          tools: [{ googleSearch: {} }],
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              lastUpdatedText: { type: Type.STRING },
+              trends: {
+                type: Type.ARRAY,
+                items: {
+                  type: Type.OBJECT,
+                  properties: {
+                    topic: { type: Type.STRING },
+                    category: { type: Type.STRING },
+                    description: { type: Type.STRING },
+                    searchVolume: { type: Type.STRING },
+                    heatLevel: { type: Type.STRING },
+                    platforms: {
+                      type: Type.ARRAY,
+                      items: { type: Type.STRING }
+                    },
+                    impactScore: { type: Type.NUMBER },
+                    summary: { type: Type.STRING },
+                    hashtagSuggestion: { type: Type.STRING },
+                    trendingKeywords: {
+                      type: Type.ARRAY,
+                      items: {
+                        type: Type.OBJECT,
+                        properties: {
+                          keyword: { type: Type.STRING },
+                          searchVolume: { type: Type.STRING },
+                          difficulty: { type: Type.STRING },
+                          intent: { type: Type.STRING },
+                          cpc: { type: Type.STRING }
+                        },
+                        required: ["keyword", "searchVolume", "difficulty", "intent", "cpc"]
+                      }
+                    }
+                  },
+                  required: [
+                    "topic",
+                    "category",
+                    "description",
+                    "searchVolume",
+                    "heatLevel",
+                    "platforms",
+                    "impactScore",
+                    "summary",
+                    "hashtagSuggestion",
+                    "trendingKeywords"
+                  ]
+                }
+              }
+            },
+            required: ["lastUpdatedText", "trends"]
+          }
+        }
+      });
+
+      const trendsData = JSON.parse(response.text || "{}");
+      const chunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
+      const webSources = chunks
+        .filter((chunk: any) => chunk.web)
+        .map((chunk: any) => ({
+          title: chunk.web.title || "Live Web Source",
+          url: chunk.web.uri
+        }));
+
+      res.json({
+        ...trendsData,
+        sources: webSources
+      });
+    } catch (error: any) {
+      console.error("Bangladesh Trends Error:", error);
+      res.status(500).json({ error: `Failed to fetch live trends: ${error.message || error}` });
+    }
+  });
+
+  app.post("/api/bd-keyword-analysis", async (req, res) => {
+    const appApiKey = process.env.GEMINI_API_KEY || process.env.API_KEY;
+    if (!appApiKey) {
+      return res.status(500).json({ error: "Gemini API key is not configured in Settings." });
+    }
+
+    const { query } = req.body;
+    if (!query) {
+      return res.status(400).json({ error: "Search query is required." });
+    }
+
+    try {
+      const response = await ai.models.generateContent({
+        model: "gemini-3.5-flash",
+        contents: `Analyze the search keyword/query "${query}" in the context of Google search, social media discussions, and informational web habits in Bangladesh. Ground your findings with Google Search trends. Output a detailed JSON report with suggested related keywords, user search intents, difficulty to rank organically in Bangladesh, and CPC estimates.`,
+        config: {
+          tools: [{ googleSearch: {} }],
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              mainKeyword: { type: Type.STRING },
+              searchIntent: { type: Type.STRING }, // e.g. "Informational", "Transactional"
+              monthlyVolumeBangladesh: { type: Type.STRING },
+              seoDifficultyPercent: { type: Type.NUMBER }, // 0 to 100
+              estimatedCpcBdt: { type: Type.STRING },
+              competitionLevel: { type: Type.STRING }, // "Low", "Medium", "High"
+              trendDirection: { type: Type.STRING }, // "Rising", "Stable", "Declining"
+              topAudienceDemographic: { type: Type.STRING },
+              relatedLongTailKeywords: {
+                type: Type.ARRAY,
+                items: {
+                  type: Type.OBJECT,
+                  properties: {
+                    keyword: { type: Type.STRING },
+                    relevanceScore: { type: Type.NUMBER }, // 0 to 100
+                    monthlyVolume: { type: Type.STRING },
+                    intent: { type: Type.STRING }
+                  },
+                  required: ["keyword", "relevanceScore", "monthlyVolume", "intent"]
+                }
+              },
+              contentStrategyIdeas: {
+                type: Type.ARRAY,
+                items: { type: Type.STRING }
+              },
+              topQuestionsAskedInBD: {
+                type: Type.ARRAY,
+                items: { type: Type.STRING }
+              }
+            },
+            required: [
+              "mainKeyword",
+              "searchIntent",
+              "monthlyVolumeBangladesh",
+              "seoDifficultyPercent",
+              "estimatedCpcBdt",
+              "competitionLevel",
+              "trendDirection",
+              "topAudienceDemographic",
+              "relatedLongTailKeywords",
+              "contentStrategyIdeas",
+              "topQuestionsAskedInBD"
+            ]
+          }
+        }
+      });
+
+      const parsedData = JSON.parse(response.text || "{}");
+      res.json(parsedData);
+    } catch (error: any) {
+      console.error("Bangladesh Keyword Analysis Error:", error);
+      res.status(500).json({ error: `Failed to analyze keyword: ${error.message || error}` });
+    }
+  });
+
 async function startServer() {
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {

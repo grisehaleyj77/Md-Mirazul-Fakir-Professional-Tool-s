@@ -71,7 +71,8 @@ import {
   Wifi,
   Fingerprint,
   Smartphone,
-  Mail
+  Mail,
+  Shirt
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -165,6 +166,7 @@ import { TextCompare } from './components/tools/TextCompare';
 import { TextToSlugConverter } from './components/tools/TextToSlugConverter';
 import { AIVirtualTryOn } from './components/tools/AIVirtualTryOn';
 import { BangladeshTrendingTopics } from './components/tools/BangladeshTrendingTopics';
+import { TShirtDesignTool } from './components/tools/TShirtDesignTool';
 
 // Custom Text Tools imports
 import { 
@@ -263,6 +265,7 @@ const TOOL_CONFIG = [
 
   // SECTION 2: Media & Creators Tools (MEDIA)
   { id: 'ai-virtual-try-on', name: 'AI Virtual Try-On', description: 'Try on clothing garments virtually on a live model template or uploaded portrait shot using interactive layouts or Gemini AI blending.', category: 'AI', icon: Sparkles, color: 'bg-blue-600', component: AIVirtualTryOn },
+  { id: 'tshirt-designer', name: 'AI T-Shirt Design Studio', description: 'Design premium custom clothing interactively with multi-layer text layouts, custom vector cliparts, design uploads, and real-time Gemini AI slogan copywriters.', category: 'AI', icon: Shirt, color: 'bg-indigo-650', component: TShirtDesignTool },
   { id: 'ai-writer', name: 'Article Writer Tool', description: 'Generate exhaustive 5000+ words articles with professional SEO entities and corresponding matching pictures on 1-click.', category: 'AI', icon: Sparkles, color: 'bg-emerald-600', component: AIWriter },
   { id: 'copyright-remover', name: 'Copyright Sanitizer', description: 'Remove metadata, tags, and licensing stamps from images.', category: 'AI', icon: Sparkles, color: 'bg-purple-600', component: CopyrightRemoverAI },
   { id: 'video-copyright-remover', name: 'Video Copyright Sanitizer', description: 'Scan and clean copyrighted properties in media feeds.', category: 'AI', icon: Video, color: 'bg-indigo-600', component: VideoCopyrightRemover },

@@ -109,6 +109,9 @@ const renderSimpleMarkdown = (markdownStr: string): string => {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
 
+  // Translate markdown images: ![alt](url)
+  html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<div class="my-6 rounded-2xl overflow-hidden border border-slate-200/60 dark:border-white/10 shadow-sm bg-slate-50 dark:bg-slate-900/50"><img src="$2" class="w-full object-cover max-h-[420px]" alt="$1" referrerPolicy="no-referrer" /><div class="p-3 bg-slate-100/30 dark:bg-neutral-900/40 text-center text-xs text-slate-500 dark:text-slate-400 italic font-semibold border-t border-slate-200/50 dark:border-white/5">$1</div></div>');
+
   // Translate code blocks ```code```
   html = html.replace(/```([\s\S]*?)```/g, '<pre class="bg-slate-100 dark:bg-slate-900/60 p-4 rounded-xl font-mono text-xs overflow-x-auto text-[var(--text-main)] my-3">$1</pre>');
   
